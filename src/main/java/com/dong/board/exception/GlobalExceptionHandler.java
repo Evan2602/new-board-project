@@ -47,6 +47,45 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 중복 사용자명 → 409 Conflict
+     */
+    @ExceptionHandler(DuplicateUsernameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateUsernameException(DuplicateUsernameException e) {
+        ErrorResponse response = new ErrorResponse(
+                "DUPLICATE_USERNAME",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
+     * 인증 실패 (잘못된 자격증명) → 401 Unauthorized
+     */
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException e) {
+        ErrorResponse response = new ErrorResponse(
+                "INVALID_CREDENTIALS",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    /**
+     * 게시글 접근 권한 없음 → 403 Forbidden
+     */
+    @ExceptionHandler(BoardAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleBoardAccessDeniedException(BoardAccessDeniedException e) {
+        ErrorResponse response = new ErrorResponse(
+                "ACCESS_DENIED",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    /**
      * 그 외 예외 → 500 Internal Server Error
      */
     @ExceptionHandler(Exception.class)

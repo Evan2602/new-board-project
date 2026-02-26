@@ -1,3 +1,7 @@
 spring:
   application:
     name: board
+
+jwt:
+  secret: "board-jwt-secret-key-must-be-32-chars-minimum!!"
+  expiration-ms: 86400000
