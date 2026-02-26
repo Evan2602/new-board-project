@@ -1,9 +1,11 @@
 package com.dong.board.service;
 
 import com.dong.board.domain.Board;
+import com.dong.board.domain.User;
 import com.dong.board.exception.BoardAccessDeniedException;
 import com.dong.board.exception.BoardNotFoundException;
 import com.dong.board.repository.BoardRepository;
+import com.dong.board.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,10 +23,12 @@ public class BoardService {
 
     // 게시글 저장/조회/삭제를 담당하는 저장소
     private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
 
     // 생성자 주입 (Spring이 BoardRepository 빈을 자동으로 주입)
-    public BoardService(BoardRepository boardRepository) {
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
         this.boardRepository = boardRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -39,7 +43,7 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new BoardNotFoundException(id));
         // 도메인 엔티티를 서비스 결과 객체로 변환해서 반환
-        return BoardResult.from(board);
+        return toResult(board);
     }
 
     /**
@@ -50,7 +54,7 @@ public class BoardService {
     public List<BoardResult> getBoardList() {
         // 모든 게시글을 조회해서 각각 BoardResult로 변환
         return boardRepository.findAll().stream()
-                .map(BoardResult::from)
+                .map(this::toResult)
                 .toList();
     }
 
@@ -68,7 +72,7 @@ public class BoardService {
         Board board = Board.create(id, command.title(), command.content(), command.authorId());
         // 저장소에 저장 후 결과 반환
         Board saved = boardRepository.save(board);
-        return BoardResult.from(saved);
+        return toResult(saved);
     }
 
     /**
@@ -98,7 +102,7 @@ public class BoardService {
         // 3. 내용 수정 (updatedAt 자동 갱신)
         board.update(command.title(), command.content());
         Board saved = boardRepository.save(board);
-        return BoardResult.from(saved);
+        return toResult(saved);
     }
 
     /**
@@ -116,5 +120,26 @@ public class BoardService {
             throw new BoardAccessDeniedException();
         }
         boardRepository.deleteById(id);
+    }
+
+    /**
+     * Board 엔티티 → BoardResult 변환
+     * authorId로 User를 조회해 userName(닉네임)을 함께 담습니다
+     * 사용자를 찾지 못하면 authorId를 대체값으로 사용합니다
+     */
+    private BoardResult toResult(Board board) {
+        String userName = userRepository.findByUserId(board.getAuthorId())
+                .map(User::getUsername)
+                .orElse(board.getAuthorId());
+
+        return new BoardResult(
+                board.getId(),
+                board.getTitle(),
+                board.getContent(),
+                board.getAuthorId(),
+                userName,
+                board.getCreatedAt(),
+                board.getUpdatedAt()
+        );
     }
 }

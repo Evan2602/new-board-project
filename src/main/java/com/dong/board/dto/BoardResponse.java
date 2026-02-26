@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
  *   "title": "게시글 제목",
  *   "content": "게시글 내용",
  *   "authorId": "hong123",
+ *   "userName": "홍길동",
  *   "createdAt": "2024-01-01T12:00:00",
  *   "updatedAt": "2024-01-01T12:00:00"
  * }
@@ -22,7 +23,8 @@ public record BoardResponse(
         Long id,
         String title,
         String content,
-        String authorId,         // 작성자의 로그인 ID (예: "hong123")
+        String authorId,
+        String userName,         // 작성자 닉네임 (예: "홍길동")
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -35,6 +37,7 @@ public record BoardResponse(
                 result.title(),
                 result.content(),
                 result.authorId(),    // authorId로 변경
+                result.userName(),
                 result.createdAt(),
                 result.updatedAt()
         );
