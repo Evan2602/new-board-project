@@ -40,11 +40,15 @@ class AuthServiceTest {
     @DisplayName("회원가입 - 성공")
     void signUp_success() {
         // given
+        // userId(로그인 ID), username(표시 이름), password(비밀번호)로 커맨드 생성
         SignUpCommand command = new SignUpCommand("hong123", "홍길동", "password123");
+        // "hong123"이라는 ID는 아직 사용 중이지 않음
         given(userRepository.existsByUserId("hong123")).willReturn(false);
         given(userRepository.generateId()).willReturn(1L);
         given(passwordEncoder.encode("password123")).willReturn("encodedPassword");
+        // 저장 시 그대로 반환 (인메모리 저장소 동작 모방)
         given(userRepository.save(any(User.class))).willAnswer(inv -> inv.getArgument(0));
+        // userId로 토큰 생성
         given(jwtProvider.generateToken("hong123")).willReturn("test.jwt.token");
 
         // when
@@ -52,6 +56,7 @@ class AuthServiceTest {
 
         // then
         assertThat(result.accessToken()).isEqualTo("test.jwt.token");
+        // userId와 username이 모두 올바르게 반환되는지 확인
         assertThat(result.userId()).isEqualTo("hong123");
         assertThat(result.username()).isEqualTo("홍길동");
     }
@@ -59,11 +64,11 @@ class AuthServiceTest {
     @Test
     @DisplayName("회원가입 - 실패 (중복 아이디)")
     void signUp_duplicateUserId() {
-        // given
+        // given: 이미 "hong123"이 사용 중
         SignUpCommand command = new SignUpCommand("hong123", "홍길동", "password123");
         given(userRepository.existsByUserId("hong123")).willReturn(true);
 
-        // when & then
+        // when & then: 중복 예외 발생, 메시지에 "hong123" 포함
         assertThatThrownBy(() -> authService.signUp(command))
                 .isInstanceOf(DuplicateUsernameException.class)
                 .hasMessageContaining("hong123");
@@ -74,6 +79,7 @@ class AuthServiceTest {
     void login_success() {
         // given
         LoginCommand command = new LoginCommand("hong123", "password123");
+        // 저장소에는 userId="hong123", username="홍길동"인 사용자가 존재
         User user = User.create(1L, "hong123", "홍길동", "encodedPassword");
         given(userRepository.findByUserId("hong123")).willReturn(Optional.of(user));
         given(passwordEncoder.matches("password123", "encodedPassword")).willReturn(true);

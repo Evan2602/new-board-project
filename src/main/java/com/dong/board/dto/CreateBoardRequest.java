@@ -9,13 +9,16 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record CreateBoardRequest(
         @NotBlank(message = "제목은 필수입니다.")
-        String title,
+        String title,    // 게시글 제목
 
         @NotBlank(message = "내용은 필수입니다.")
-        String content
+        String content   // 게시글 본문
 ) {
     /**
-     * Service 레이어 요청 객체로 변환 (JWT에서 추출한 작성자명 전달)
+     * Service 레이어 요청 객체로 변환
+     * JWT에서 추출한 authorId(로그인 ID)를 여기서 함께 전달합니다
+     *
+     * @param authorId JWT 토큰에서 추출한 작성자의 로그인 ID (예: "hong123")
      */
     public CreateBoardCommand toCommand(String authorId) {
         return new CreateBoardCommand(title, content, authorId);

@@ -44,7 +44,9 @@ class AuthControllerTest {
     @DisplayName("POST /api/auth/sign-up → 201 회원가입 성공")
     void signUp_returns201() throws Exception {
         // given
+        // userId, username, password 세 필드 모두 전달
         SignUpRequest request = new SignUpRequest("hong123", "홍길동", "password123");
+        // 서비스 응답에도 userId, username 둘 다 포함
         AuthResult result = new AuthResult("test.jwt.token", "hong123", "홍길동");
         given(authService.signUp(any(SignUpCommand.class))).willReturn(result);
 
@@ -56,6 +58,7 @@ class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.accessToken").value("test.jwt.token"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                // userId와 username 둘 다 응답에 포함되는지 검증
                 .andExpect(jsonPath("$.userId").value("hong123"))
                 .andExpect(jsonPath("$.username").value("홍길동"));
     }
@@ -80,7 +83,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("POST /api/auth/sign-up → 400 (Validation 실패: 짧은 비밀번호)")
     void signUp_returns400_whenPasswordTooShort() throws Exception {
-        // given - 8자 미만 비밀번호
+        // given - 8자 미만 비밀번호, userId와 username은 정상
         SignUpRequest request = new SignUpRequest("hong123", "홍길동", "short");
 
         // when & then
@@ -95,8 +98,9 @@ class AuthControllerTest {
     @Test
     @DisplayName("POST /api/auth/login → 200 로그인 성공")
     void login_returns200() throws Exception {
-        // given
+        // given: userId로 로그인 요청
         LoginRequest request = new LoginRequest("hong123", "password123");
+        // 응답에 userId, username 둘 다 포함
         AuthResult result = new AuthResult("test.jwt.token", "hong123", "홍길동");
         given(authService.login(any(LoginCommand.class))).willReturn(result);
 

@@ -10,11 +10,27 @@ import java.util.Optional;
  */
 public interface UserRepository {
 
+    // 사용자 저장 (신규 생성 또는 수정)
     User save(User user);
 
+    /**
+     * 로그인 ID로 사용자 조회
+     * 로그인 처리 시 사용됩니다
+     *
+     * @param userId 로그인 ID (예: "hong123")
+     * @return 사용자가 존재하면 Optional.of(user), 없으면 Optional.empty()
+     */
     Optional<User> findByUserId(String userId);
 
+    /**
+     * 로그인 ID가 이미 사용 중인지 확인
+     * 회원가입 시 중복 검사에 사용됩니다
+     *
+     * @param userId 로그인 ID (예: "hong123")
+     * @return 이미 존재하면 true, 사용 가능하면 false
+     */
     boolean existsByUserId(String userId);
 
+    // 자동 증가하는 고유 ID 생성 (1, 2, 3 ...)
     Long generateId();
 }

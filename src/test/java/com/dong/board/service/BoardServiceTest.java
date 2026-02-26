@@ -32,14 +32,14 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글 단건 조회 - 성공")
     void getBoard_success() {
-        // given
+        // given: authorId로 로그인 ID("hong123")를 저장
         Board board = Board.create(1L, "제목", "내용", "hong123");
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
 
         // when
         BoardResult result = boardService.getBoard(1L);
 
-        // then
+        // then: authorId가 "hong123"으로 반환되는지 확인
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.title()).isEqualTo("제목");
         assertThat(result.content()).isEqualTo("내용");
@@ -61,7 +61,7 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글 목록 조회 - 성공")
     void getBoardList_success() {
-        // given
+        // given: 두 사용자의 게시글
         Board board1 = Board.create(1L, "제목1", "내용1", "hong123");
         Board board2 = Board.create(2L, "제목2", "내용2", "kim456");
         given(boardRepository.findAll()).willReturn(List.of(board1, board2));
@@ -76,7 +76,7 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글 생성 - 성공")
     void createBoard_success() {
-        // given
+        // given: authorId에 로그인 ID 전달
         CreateBoardCommand command = new CreateBoardCommand("제목", "내용", "hong123");
         Board board = Board.create(1L, "제목", "내용", "hong123");
         given(boardRepository.generateId()).willReturn(1L);
@@ -93,13 +93,13 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글 수정 - 성공")
     void updateBoard_success() {
-        // given
+        // given: 작성자 로그인 ID "hong123"으로 게시글 생성
         Board board = Board.create(1L, "원래 제목", "원래 내용", "hong123");
         UpdateBoardCommand command = new UpdateBoardCommand("새 제목", "새 내용");
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
         given(boardRepository.save(any(Board.class))).willReturn(board);
 
-        // when
+        // when: 동일한 userId로 수정 요청 → 성공
         BoardResult result = boardService.updateBoard(1L, command, "hong123");
 
         // then
@@ -123,12 +123,12 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글 수정 - 실패 (작성자 불일치)")
     void updateBoard_accessDenied() {
-        // given
+        // given: 게시글 authorId = "hong123"
         Board board = Board.create(1L, "원래 제목", "원래 내용", "hong123");
         UpdateBoardCommand command = new UpdateBoardCommand("새 제목", "새 내용");
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
 
-        // when & then
+        // when & then: 다른 userId("other_user")로 수정 시도 → 403 예외
         assertThatThrownBy(() -> boardService.updateBoard(1L, command, "other_user"))
                 .isInstanceOf(BoardAccessDeniedException.class);
     }
@@ -136,14 +136,14 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글 삭제 - 성공")
     void deleteBoard_success() {
-        // given
+        // given: 작성자 "hong123"의 게시글
         Board board = Board.create(1L, "제목", "내용", "hong123");
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
 
-        // when
+        // when: 동일한 userId로 삭제 요청 → 성공
         boardService.deleteBoard(1L, "hong123");
 
-        // then
+        // then: 저장소의 deleteById가 호출되었는지 확인
         verify(boardRepository).deleteById(1L);
     }
 
@@ -162,11 +162,11 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글 삭제 - 실패 (작성자 불일치)")
     void deleteBoard_accessDenied() {
-        // given
+        // given: 게시글 authorId = "hong123"
         Board board = Board.create(1L, "제목", "내용", "hong123");
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
 
-        // when & then
+        // when & then: 다른 userId("other_user")로 삭제 시도 → 403 예외
         assertThatThrownBy(() -> boardService.deleteBoard(1L, "other_user"))
                 .isInstanceOf(BoardAccessDeniedException.class);
     }

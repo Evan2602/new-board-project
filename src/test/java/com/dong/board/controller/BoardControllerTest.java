@@ -44,6 +44,7 @@ class BoardControllerTest {
     @MockitoBean
     private JwtProvider jwtProvider;
 
+    // 테스트용 샘플 BoardResult 생성 (authorId에 로그인 ID 사용)
     private BoardResult createSampleResult(Long id) {
         return new BoardResult(id, "제목", "내용", "hong123", LocalDateTime.now(), LocalDateTime.now());
     }
@@ -86,6 +87,7 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("POST /api/boards → 201 게시글 생성")
+    // @WithMockUser의 username 값이 auth.getName()으로 반환됨 → userId 역할
     @WithMockUser(username = "hong123")
     void createBoard_returns201() throws Exception {
         // given - authorId 필드 없음 (JWT에서 자동 추출)
@@ -105,7 +107,7 @@ class BoardControllerTest {
     @DisplayName("POST /api/boards → 400 (Validation 실패: 빈 제목)")
     @WithMockUser(username = "hong123")
     void createBoard_returns400_whenTitleBlank() throws Exception {
-        // given - title이 빈 문자열
+        // given - title이 빈 문자열 → @NotBlank 검증 실패
         CreateBoardRequest request = new CreateBoardRequest("", "내용");
 
         // when & then
@@ -119,9 +121,9 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("PUT /api/boards/{id} → 200 게시글 수정")
-    @WithMockUser(username = "hong123")
+    @WithMockUser(username = "hong123")  // auth.getName() = "hong123" = userId
     void updateBoard_returns200() throws Exception {
-        // given
+        // given: updateBoard(1L, command, "hong123") 호출 시 성공 반환
         UpdateBoardRequest request = new UpdateBoardRequest("새 제목", "새 내용");
         given(boardService.updateBoard(eq(1L), any(UpdateBoardCommand.class), eq("hong123")))
                 .willReturn(createSampleResult(1L));
@@ -166,7 +168,7 @@ class BoardControllerTest {
     @DisplayName("DELETE /api/boards/{id} → 404 (존재하지 않는 게시글)")
     @WithMockUser(username = "hong123")
     void deleteBoard_returns404() throws Exception {
-        // given
+        // given: userId "hong123"으로 99번 게시글 삭제 시도 → 404 예외
         doThrow(new BoardNotFoundException(99L)).when(boardService).deleteBoard(99L, "hong123");
 
         // when & then
