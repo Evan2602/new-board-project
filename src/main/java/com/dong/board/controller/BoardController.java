@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -52,9 +51,10 @@ public class BoardController {
     @PostMapping
     public ResponseEntity<BoardResponse> createBoard(
             @Valid @RequestBody CreateBoardRequest request,
-            @CurrentSecurityContext(expression = "authentication") Authentication auth) {
+            Authentication auth) {
+        String userId = auth.getName();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BoardResponse.from(boardService.createBoard(request.toCommand(auth.getName()))));
+                .body(BoardResponse.from(boardService.createBoard(request.toCommand(userId))));
     }
 
     /**
@@ -64,7 +64,7 @@ public class BoardController {
     public ResponseEntity<BoardResponse> updateBoard(
             @PathVariable Long id,
             @Valid @RequestBody UpdateBoardRequest request,
-            @CurrentSecurityContext(expression = "authentication") Authentication auth) {
+            Authentication auth) {
         return ResponseEntity.ok(
                 BoardResponse.from(boardService.updateBoard(id, request.toCommand(), auth.getName())));
     }
@@ -75,7 +75,7 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBoard(
             @PathVariable Long id,
-            @CurrentSecurityContext(expression = "authentication") Authentication auth) {
+            Authentication auth) {
         boardService.deleteBoard(id, auth.getName());
         return ResponseEntity.noContent().build();
     }

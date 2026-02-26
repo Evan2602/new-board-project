@@ -7,5 +7,5 @@ package com.dong.board.service;
 public record CreateBoardCommand(
         String title,
         String content,
-        String author
+        String authorId
 ) {}

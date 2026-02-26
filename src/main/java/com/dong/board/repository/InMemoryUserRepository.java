@@ -20,18 +20,18 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
-        store.put(user.getUsername(), user);
+        store.put(user.getUserId(), user);
         return user;
     }
 
     @Override
-    public Optional<User> findByUsername(String username) {
-        return Optional.ofNullable(store.get(username));
+    public Optional<User> findByUserId(String userId) {
+        return Optional.ofNullable(store.get(userId));
     }
 
     @Override
-    public boolean existsByUsername(String username) {
-        return store.containsKey(username);
+    public boolean existsByUserId(String userId) {
+        return store.containsKey(userId);
     }
 
     @Override

@@ -12,7 +12,7 @@ public record BoardResult(
         Long id,
         String title,
         String content,
-        String author,
+        String authorId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -24,7 +24,7 @@ public record BoardResult(
                 board.getId(),
                 board.getTitle(),
                 board.getContent(),
-                board.getAuthor(),
+                board.getAuthorId(),
                 board.getCreatedAt(),
                 board.getUpdatedAt()
         );

@@ -6,13 +6,13 @@ import java.time.LocalDateTime;
 
 /**
  * 게시글 HTTP 응답 DTO (Controller 레이어 전용)
- * 도메인 엔티티 대신 서비스 결과 객체(BoardResult)로부터 생성
+ * 도메인 엔티티 대신 서비스 결과 객체(BoardResult)로부터 생성합니다
  */
 public record BoardResponse(
         Long id,
         String title,
         String content,
-        String author,
+        String authorId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -24,7 +24,7 @@ public record BoardResponse(
                 result.id(),
                 result.title(),
                 result.content(),
-                result.author(),
+                result.authorId(),
                 result.createdAt(),
                 result.updatedAt()
         );

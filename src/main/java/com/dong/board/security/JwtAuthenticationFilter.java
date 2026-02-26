@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 /**
- * 요청마다 JWT 토큰을 검증하고 SecurityContext에 인증 정보를 설정하는 필터
+ * JWT 인증 필터 — 모든 HTTP 요청마다 한 번씩 실행됩니다 (OncePerRequestFilter)
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -31,9 +31,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = extractToken(request);
 
         if (token != null && jwtProvider.validateToken(token)) {
-            String username = jwtProvider.extractUsername(token);
+            String userId = jwtProvider.extractUserId(token);
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

@@ -45,7 +45,7 @@ class BoardControllerTest {
     private JwtProvider jwtProvider;
 
     private BoardResult createSampleResult(Long id) {
-        return new BoardResult(id, "제목", "내용", "작성자", LocalDateTime.now(), LocalDateTime.now());
+        return new BoardResult(id, "제목", "내용", "hong123", LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Test
@@ -86,9 +86,9 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("POST /api/boards → 201 게시글 생성")
-    @WithMockUser(username = "작성자")
+    @WithMockUser(username = "hong123")
     void createBoard_returns201() throws Exception {
-        // given - author 필드 없음 (JWT에서 자동 추출)
+        // given - authorId 필드 없음 (JWT에서 자동 추출)
         CreateBoardRequest request = new CreateBoardRequest("제목", "내용");
         given(boardService.createBoard(any(CreateBoardCommand.class))).willReturn(createSampleResult(1L));
 
@@ -103,7 +103,7 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("POST /api/boards → 400 (Validation 실패: 빈 제목)")
-    @WithMockUser(username = "작성자")
+    @WithMockUser(username = "hong123")
     void createBoard_returns400_whenTitleBlank() throws Exception {
         // given - title이 빈 문자열
         CreateBoardRequest request = new CreateBoardRequest("", "내용");
@@ -119,11 +119,11 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("PUT /api/boards/{id} → 200 게시글 수정")
-    @WithMockUser(username = "작성자")
+    @WithMockUser(username = "hong123")
     void updateBoard_returns200() throws Exception {
         // given
         UpdateBoardRequest request = new UpdateBoardRequest("새 제목", "새 내용");
-        given(boardService.updateBoard(eq(1L), any(UpdateBoardCommand.class), eq("작성자")))
+        given(boardService.updateBoard(eq(1L), any(UpdateBoardCommand.class), eq("hong123")))
                 .willReturn(createSampleResult(1L));
 
         // when & then
@@ -137,7 +137,7 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("PUT /api/boards/{id} → 404 (존재하지 않는 게시글)")
-    @WithMockUser(username = "작성자")
+    @WithMockUser(username = "hong123")
     void updateBoard_returns404() throws Exception {
         // given
         UpdateBoardRequest request = new UpdateBoardRequest("새 제목", "새 내용");
@@ -155,7 +155,7 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("DELETE /api/boards/{id} → 204 게시글 삭제")
-    @WithMockUser(username = "작성자")
+    @WithMockUser(username = "hong123")
     void deleteBoard_returns204() throws Exception {
         // when & then
         mockMvc.perform(delete("/api/boards/1").with(csrf()))
@@ -164,10 +164,10 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("DELETE /api/boards/{id} → 404 (존재하지 않는 게시글)")
-    @WithMockUser(username = "작성자")
+    @WithMockUser(username = "hong123")
     void deleteBoard_returns404() throws Exception {
         // given
-        doThrow(new BoardNotFoundException(99L)).when(boardService).deleteBoard(99L, "작성자");
+        doThrow(new BoardNotFoundException(99L)).when(boardService).deleteBoard(99L, "hong123");
 
         // when & then
         mockMvc.perform(delete("/api/boards/99").with(csrf()))

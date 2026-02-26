@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 /**
- * JWT 토큰 생성 및 검증 컴포넌트
+ * JWT(JSON Web Token) 토큰 생성 및 검증 컴포넌트
  */
 @Component
 public class JwtProvider {
@@ -27,11 +27,11 @@ public class JwtProvider {
     }
 
     /**
-     * 사용자명으로 JWT 액세스 토큰 생성
+     * 로그인 ID로 JWT 액세스 토큰 생성
      */
-    public String generateToken(String username) {
+    public String generateToken(String userId) {
         return Jwts.builder()
-                .subject(username)
+                .subject(userId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
@@ -39,9 +39,9 @@ public class JwtProvider {
     }
 
     /**
-     * JWT 토큰에서 사용자명 추출
+     * JWT 토큰에서 로그인 ID(userId) 추출
      */
-    public String extractUsername(String token) {
+    public String extractUserId(String token) {
         return Jwts.parser()
                 .verifyWith(key)
                 .build()

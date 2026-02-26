@@ -20,30 +20,30 @@ class JwtProviderTest {
     @DisplayName("토큰 생성 - 성공")
     void generateToken_success() {
         // when
-        String token = jwtProvider.generateToken("testuser");
+        String token = jwtProvider.generateToken("hong123");
 
         // then
         assertThat(token).isNotBlank();
     }
 
     @Test
-    @DisplayName("토큰에서 사용자명 추출 - 성공")
-    void extractUsername_success() {
+    @DisplayName("토큰에서 로그인 ID 추출 - 성공")
+    void extractUserId_success() {
         // given
-        String token = jwtProvider.generateToken("testuser");
+        String token = jwtProvider.generateToken("hong123");
 
         // when
-        String username = jwtProvider.extractUsername(token);
+        String userId = jwtProvider.extractUserId(token);
 
         // then
-        assertThat(username).isEqualTo("testuser");
+        assertThat(userId).isEqualTo("hong123");
     }
 
     @Test
     @DisplayName("유효한 토큰 검증 - 성공")
     void validateToken_validToken() {
         // given
-        String token = jwtProvider.generateToken("testuser");
+        String token = jwtProvider.generateToken("hong123");
 
         // when & then
         assertThat(jwtProvider.validateToken(token)).isTrue();
@@ -53,7 +53,7 @@ class JwtProviderTest {
     @DisplayName("위변조된 토큰 검증 - 실패")
     void validateToken_tamperedToken() {
         // given
-        String token = jwtProvider.generateToken("testuser") + "tampered";
+        String token = jwtProvider.generateToken("hong123") + "tampered";
 
         // when & then
         assertThat(jwtProvider.validateToken(token)).isFalse();

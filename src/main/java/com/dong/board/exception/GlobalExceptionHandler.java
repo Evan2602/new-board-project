@@ -90,6 +90,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        e.printStackTrace(); // 디버깅용 임시 스택 트레이스 출력
         ErrorResponse response = new ErrorResponse(
                 "INTERNAL_SERVER_ERROR",
                 "서버 내부 오류가 발생했습니다.",
