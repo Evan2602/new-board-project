@@ -8,13 +8,13 @@ import com.dong.board.service.BoardResult;
 import com.dong.board.service.BoardService;
 import com.dong.board.service.CreateBoardCommand;
 import com.dong.board.service.UpdateBoardCommand;
+import org.springframework.security.test.context.support.WithMockUser;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -46,7 +46,7 @@ class BoardControllerTest {
 
     // 테스트용 샘플 BoardResult 생성 (authorId에 로그인 ID 사용)
     private BoardResult createSampleResult(Long id) {
-        return new BoardResult(id, "제목", "내용", "hong123", LocalDateTime.now(), LocalDateTime.now());
+        return new BoardResult(id, "제목", "내용", "hong123","홍길동", LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Test
