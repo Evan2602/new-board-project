@@ -1,11 +1,12 @@
 package com.dong.board.dto;
 
-import com.dong.board.domain.Board;
+import com.dong.board.service.BoardResult;
 
 import java.time.LocalDateTime;
 
 /**
- * 게시글 응답 DTO
+ * 게시글 HTTP 응답 DTO (Controller 레이어 전용)
+ * 도메인 엔티티 대신 서비스 결과 객체(BoardResult)로부터 생성
  */
 public record BoardResponse(
         Long id,
@@ -16,16 +17,16 @@ public record BoardResponse(
         LocalDateTime updatedAt
 ) {
     /**
-     * Board 엔티티로부터 응답 DTO 생성 정적 팩토리 메서드
+     * Service 레이어 결과 객체로부터 HTTP 응답 DTO 생성 정적 팩토리 메서드
      */
-    public static BoardResponse from(Board board) {
+    public static BoardResponse from(BoardResult result) {
         return new BoardResponse(
-                board.getId(),
-                board.getTitle(),
-                board.getContent(),
-                board.getAuthor(),
-                board.getCreatedAt(),
-                board.getUpdatedAt()
+                result.id(),
+                result.title(),
+                result.content(),
+                result.author(),
+                result.createdAt(),
+                result.updatedAt()
         );
     }
 }

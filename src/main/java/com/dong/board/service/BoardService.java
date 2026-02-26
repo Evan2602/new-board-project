@@ -1,9 +1,7 @@
 package com.dong.board.service;
 
 import com.dong.board.domain.Board;
-import com.dong.board.dto.BoardResponse;
-import com.dong.board.dto.CreateBoardRequest;
-import com.dong.board.dto.UpdateBoardRequest;
+import com.dong.board.exception.BoardAccessDeniedException;
 import com.dong.board.exception.BoardNotFoundException;
 import com.dong.board.repository.BoardRepository;
 import org.springframework.stereotype.Service;
@@ -12,7 +10,7 @@ import java.util.List;
 
 /**
  * 게시글 비즈니스 로직 서비스
- * BoardRepository 인터페이스 타입으로 주입받아 구현체에 직접 의존하지 않음
+ * HTTP 관련 DTO(Request/Response)에 의존하지 않고 Command/Result 사용
  */
 @Service
 public class BoardService {
@@ -26,48 +24,53 @@ public class BoardService {
     /**
      * 게시글 단건 조회
      */
-    public BoardResponse getBoard(Long id) {
+    public BoardResult getBoard(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new BoardNotFoundException(id));
-        return BoardResponse.from(board);
+        return BoardResult.from(board);
     }
 
     /**
      * 게시글 목록 조회
      */
-    public List<BoardResponse> getBoardList() {
+    public List<BoardResult> getBoardList() {
         return boardRepository.findAll().stream()
-                .map(BoardResponse::from)
+                .map(BoardResult::from)
                 .toList();
     }
 
     /**
      * 게시글 생성
      */
-    public BoardResponse createBoard(CreateBoardRequest request) {
+    public BoardResult createBoard(CreateBoardCommand command) {
         Long id = boardRepository.generateId();
-        Board board = Board.create(id, request.title(), request.content(), request.author());
+        Board board = Board.create(id, command.title(), command.content(), command.author());
         Board saved = boardRepository.save(board);
-        return BoardResponse.from(saved);
+        return BoardResult.from(saved);
     }
 
     /**
-     * 게시글 수정
+     * 게시글 수정 (작성자 본인만 가능)
      */
-    public BoardResponse updateBoard(Long id, UpdateBoardRequest request) {
+    public BoardResult updateBoard(Long id, UpdateBoardCommand command, String requestingUsername) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new BoardNotFoundException(id));
-        board.update(request.title(), request.content());
+        if (!board.getAuthor().equals(requestingUsername)) {
+            throw new BoardAccessDeniedException();
+        }
+        board.update(command.title(), command.content());
         Board saved = boardRepository.save(board);
-        return BoardResponse.from(saved);
+        return BoardResult.from(saved);
     }
 
     /**
-     * 게시글 삭제
+     * 게시글 삭제 (작성자 본인만 가능)
      */
-    public void deleteBoard(Long id) {
-        if (!boardRepository.existsById(id)) {
-            throw new BoardNotFoundException(id);
+    public void deleteBoard(Long id, String requestingUsername) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new BoardNotFoundException(id));
+        if (!board.getAuthor().equals(requestingUsername)) {
+            throw new BoardAccessDeniedException();
         }
         boardRepository.deleteById(id);
     }

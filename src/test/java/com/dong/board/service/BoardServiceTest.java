@@ -1,9 +1,7 @@
 package com.dong.board.service;
 
 import com.dong.board.domain.Board;
-import com.dong.board.dto.BoardResponse;
-import com.dong.board.dto.CreateBoardRequest;
-import com.dong.board.dto.UpdateBoardRequest;
+import com.dong.board.exception.BoardAccessDeniedException;
 import com.dong.board.exception.BoardNotFoundException;
 import com.dong.board.repository.BoardRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -39,13 +37,13 @@ class BoardServiceTest {
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
 
         // when
-        BoardResponse response = boardService.getBoard(1L);
+        BoardResult result = boardService.getBoard(1L);
 
         // then
-        assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.title()).isEqualTo("제목");
-        assertThat(response.content()).isEqualTo("내용");
-        assertThat(response.author()).isEqualTo("작성자");
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.title()).isEqualTo("제목");
+        assertThat(result.content()).isEqualTo("내용");
+        assertThat(result.author()).isEqualTo("작성자");
     }
 
     @Test
@@ -69,27 +67,27 @@ class BoardServiceTest {
         given(boardRepository.findAll()).willReturn(List.of(board1, board2));
 
         // when
-        List<BoardResponse> responses = boardService.getBoardList();
+        List<BoardResult> results = boardService.getBoardList();
 
         // then
-        assertThat(responses).hasSize(2);
+        assertThat(results).hasSize(2);
     }
 
     @Test
     @DisplayName("게시글 생성 - 성공")
     void createBoard_success() {
         // given
-        CreateBoardRequest request = new CreateBoardRequest("제목", "내용", "작성자");
+        CreateBoardCommand command = new CreateBoardCommand("제목", "내용", "작성자");
         Board board = Board.create(1L, "제목", "내용", "작성자");
         given(boardRepository.generateId()).willReturn(1L);
         given(boardRepository.save(any(Board.class))).willReturn(board);
 
         // when
-        BoardResponse response = boardService.createBoard(request);
+        BoardResult result = boardService.createBoard(command);
 
         // then
-        assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.title()).isEqualTo("제목");
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.title()).isEqualTo("제목");
     }
 
     @Test
@@ -97,39 +95,53 @@ class BoardServiceTest {
     void updateBoard_success() {
         // given
         Board board = Board.create(1L, "원래 제목", "원래 내용", "작성자");
-        UpdateBoardRequest request = new UpdateBoardRequest("새 제목", "새 내용");
+        UpdateBoardCommand command = new UpdateBoardCommand("새 제목", "새 내용");
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
         given(boardRepository.save(any(Board.class))).willReturn(board);
 
         // when
-        BoardResponse response = boardService.updateBoard(1L, request);
+        BoardResult result = boardService.updateBoard(1L, command, "작성자");
 
         // then
-        assertThat(response.title()).isEqualTo("새 제목");
-        assertThat(response.content()).isEqualTo("새 내용");
+        assertThat(result.title()).isEqualTo("새 제목");
+        assertThat(result.content()).isEqualTo("새 내용");
     }
 
     @Test
     @DisplayName("게시글 수정 - 실패 (존재하지 않는 게시글)")
     void updateBoard_notFound() {
         // given
-        UpdateBoardRequest request = new UpdateBoardRequest("새 제목", "새 내용");
+        UpdateBoardCommand command = new UpdateBoardCommand("새 제목", "새 내용");
         given(boardRepository.findById(99L)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> boardService.updateBoard(99L, request))
+        assertThatThrownBy(() -> boardService.updateBoard(99L, command, "작성자"))
                 .isInstanceOf(BoardNotFoundException.class)
                 .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("게시글 수정 - 실패 (작성자 불일치)")
+    void updateBoard_accessDenied() {
+        // given
+        Board board = Board.create(1L, "원래 제목", "원래 내용", "작성자");
+        UpdateBoardCommand command = new UpdateBoardCommand("새 제목", "새 내용");
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+
+        // when & then
+        assertThatThrownBy(() -> boardService.updateBoard(1L, command, "다른사용자"))
+                .isInstanceOf(BoardAccessDeniedException.class);
     }
 
     @Test
     @DisplayName("게시글 삭제 - 성공")
     void deleteBoard_success() {
         // given
-        given(boardRepository.existsById(1L)).willReturn(true);
+        Board board = Board.create(1L, "제목", "내용", "작성자");
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
 
         // when
-        boardService.deleteBoard(1L);
+        boardService.deleteBoard(1L, "작성자");
 
         // then
         verify(boardRepository).deleteById(1L);
@@ -139,11 +151,23 @@ class BoardServiceTest {
     @DisplayName("게시글 삭제 - 실패 (존재하지 않는 게시글)")
     void deleteBoard_notFound() {
         // given
-        given(boardRepository.existsById(99L)).willReturn(false);
+        given(boardRepository.findById(99L)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> boardService.deleteBoard(99L))
+        assertThatThrownBy(() -> boardService.deleteBoard(99L, "작성자"))
                 .isInstanceOf(BoardNotFoundException.class)
                 .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 - 실패 (작성자 불일치)")
+    void deleteBoard_accessDenied() {
+        // given
+        Board board = Board.create(1L, "제목", "내용", "작성자");
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+
+        // when & then
+        assertThatThrownBy(() -> boardService.deleteBoard(1L, "다른사용자"))
+                .isInstanceOf(BoardAccessDeniedException.class);
     }
 }

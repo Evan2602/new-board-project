@@ -1,26 +1,30 @@
 package com.dong.board.controller;
 
-import com.dong.board.dto.BoardResponse;
 import com.dong.board.dto.CreateBoardRequest;
 import com.dong.board.dto.UpdateBoardRequest;
 import com.dong.board.exception.BoardNotFoundException;
+import com.dong.board.security.JwtProvider;
+import com.dong.board.service.BoardResult;
 import com.dong.board.service.BoardService;
+import com.dong.board.service.CreateBoardCommand;
+import com.dong.board.service.UpdateBoardCommand;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -36,15 +40,19 @@ class BoardControllerTest {
     @MockitoBean
     private BoardService boardService;
 
-    private BoardResponse createSampleResponse(Long id) {
-        return new BoardResponse(id, "제목", "내용", "작성자", LocalDateTime.now(), LocalDateTime.now());
+    // JwtAuthenticationFilter가 JwtProvider에 의존하므로 모킹 필요
+    @MockitoBean
+    private JwtProvider jwtProvider;
+
+    private BoardResult createSampleResult(Long id) {
+        return new BoardResult(id, "제목", "내용", "작성자", LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Test
     @DisplayName("GET /api/boards → 200 목록 조회")
     void getBoardList_returns200() throws Exception {
         // given
-        given(boardService.getBoardList()).willReturn(List.of(createSampleResponse(1L)));
+        given(boardService.getBoardList()).willReturn(List.of(createSampleResult(1L)));
 
         // when & then
         mockMvc.perform(get("/api/boards"))
@@ -56,7 +64,7 @@ class BoardControllerTest {
     @DisplayName("GET /api/boards/{id} → 200 단건 조회")
     void getBoard_returns200() throws Exception {
         // given
-        given(boardService.getBoard(1L)).willReturn(createSampleResponse(1L));
+        given(boardService.getBoard(1L)).willReturn(createSampleResult(1L));
 
         // when & then
         mockMvc.perform(get("/api/boards/1"))
@@ -78,13 +86,15 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("POST /api/boards → 201 게시글 생성")
+    @WithMockUser(username = "작성자")
     void createBoard_returns201() throws Exception {
-        // given
-        CreateBoardRequest request = new CreateBoardRequest("제목", "내용", "작성자");
-        given(boardService.createBoard(any(CreateBoardRequest.class))).willReturn(createSampleResponse(1L));
+        // given - author 필드 없음 (JWT에서 자동 추출)
+        CreateBoardRequest request = new CreateBoardRequest("제목", "내용");
+        given(boardService.createBoard(any(CreateBoardCommand.class))).willReturn(createSampleResult(1L));
 
         // when & then
         mockMvc.perform(post("/api/boards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -93,12 +103,14 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("POST /api/boards → 400 (Validation 실패: 빈 제목)")
+    @WithMockUser(username = "작성자")
     void createBoard_returns400_whenTitleBlank() throws Exception {
         // given - title이 빈 문자열
-        CreateBoardRequest request = new CreateBoardRequest("", "내용", "작성자");
+        CreateBoardRequest request = new CreateBoardRequest("", "내용");
 
         // when & then
         mockMvc.perform(post("/api/boards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -107,13 +119,16 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("PUT /api/boards/{id} → 200 게시글 수정")
+    @WithMockUser(username = "작성자")
     void updateBoard_returns200() throws Exception {
         // given
         UpdateBoardRequest request = new UpdateBoardRequest("새 제목", "새 내용");
-        given(boardService.updateBoard(eq(1L), any(UpdateBoardRequest.class))).willReturn(createSampleResponse(1L));
+        given(boardService.updateBoard(eq(1L), any(UpdateBoardCommand.class), eq("작성자")))
+                .willReturn(createSampleResult(1L));
 
         // when & then
         mockMvc.perform(put("/api/boards/1")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -122,14 +137,16 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("PUT /api/boards/{id} → 404 (존재하지 않는 게시글)")
+    @WithMockUser(username = "작성자")
     void updateBoard_returns404() throws Exception {
         // given
         UpdateBoardRequest request = new UpdateBoardRequest("새 제목", "새 내용");
-        given(boardService.updateBoard(eq(99L), any(UpdateBoardRequest.class)))
+        given(boardService.updateBoard(eq(99L), any(UpdateBoardCommand.class), anyString()))
                 .willThrow(new BoardNotFoundException(99L));
 
         // when & then
         mockMvc.perform(put("/api/boards/99")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -138,20 +155,22 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("DELETE /api/boards/{id} → 204 게시글 삭제")
+    @WithMockUser(username = "작성자")
     void deleteBoard_returns204() throws Exception {
         // when & then
-        mockMvc.perform(delete("/api/boards/1"))
+        mockMvc.perform(delete("/api/boards/1").with(csrf()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @DisplayName("DELETE /api/boards/{id} → 404 (존재하지 않는 게시글)")
+    @WithMockUser(username = "작성자")
     void deleteBoard_returns404() throws Exception {
         // given
-        doThrow(new BoardNotFoundException(99L)).when(boardService).deleteBoard(99L);
+        doThrow(new BoardNotFoundException(99L)).when(boardService).deleteBoard(99L, "작성자");
 
         // when & then
-        mockMvc.perform(delete("/api/boards/99"))
+        mockMvc.perform(delete("/api/boards/99").with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("BOARD_NOT_FOUND"));
     }
