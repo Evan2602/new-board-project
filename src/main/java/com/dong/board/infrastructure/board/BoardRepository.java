@@ -1,6 +1,6 @@
-package com.dong.board.repository;
+package com.dong.board.infrastructure.board;
 
-import com.dong.board.domain.Board;
+import com.dong.board.domain.board.Board;
 
 import java.util.List;
 import java.util.Optional;

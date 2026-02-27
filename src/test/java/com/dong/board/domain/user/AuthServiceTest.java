@@ -1,9 +1,8 @@
-package com.dong.board.service;
+package com.dong.board.domain.user;
 
-import com.dong.board.domain.User;
 import com.dong.board.exception.DuplicateUsernameException;
 import com.dong.board.exception.InvalidCredentialsException;
-import com.dong.board.repository.UserRepository;
+import com.dong.board.infrastructure.user.UserRepository;
 import com.dong.board.security.JwtProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)

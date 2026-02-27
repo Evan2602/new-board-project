@@ -1,6 +1,6 @@
 package com.dong.board.dto;
 
-import com.dong.board.service.SignUpCommand;
+import com.dong.board.domain.user.SignUpCommand;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 

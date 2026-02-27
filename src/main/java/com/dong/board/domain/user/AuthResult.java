@@ -1,4 +1,4 @@
-package com.dong.board.service;
+package com.dong.board.domain.user;
 
 /**
  * 인증 서비스 응답 결과 (회원가입/로그인 공통)

@@ -1,6 +1,6 @@
 package com.dong.board.dto;
 
-import com.dong.board.service.BoardResult;
+import com.dong.board.domain.board.BoardResult;
 
 import java.time.LocalDateTime;
 

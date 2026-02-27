@@ -1,13 +1,14 @@
-package com.dong.board.controller;
+package com.dong.board.interfaces.board;
 
 import com.dong.board.dto.CreateBoardRequest;
 import com.dong.board.dto.UpdateBoardRequest;
 import com.dong.board.exception.BoardNotFoundException;
+import com.dong.board.interfaces.board.api.BoardController;
 import com.dong.board.security.JwtProvider;
-import com.dong.board.service.BoardResult;
-import com.dong.board.service.BoardService;
-import com.dong.board.service.CreateBoardCommand;
-import com.dong.board.service.UpdateBoardCommand;
+import com.dong.board.domain.board.BoardResult;
+import com.dong.board.domain.board.BoardService;
+import com.dong.board.domain.board.CreateBoardCommand;
+import com.dong.board.domain.board.UpdateBoardCommand;
 import org.springframework.security.test.context.support.WithMockUser;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;

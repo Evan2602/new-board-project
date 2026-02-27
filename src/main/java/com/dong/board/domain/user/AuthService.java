@@ -1,9 +1,8 @@
-package com.dong.board.service;
+package com.dong.board.domain.user;
 
-import com.dong.board.domain.User;
 import com.dong.board.exception.DuplicateUsernameException;
 import com.dong.board.exception.InvalidCredentialsException;
-import com.dong.board.repository.UserRepository;
+import com.dong.board.infrastructure.user.UserRepository;
 import com.dong.board.security.JwtProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

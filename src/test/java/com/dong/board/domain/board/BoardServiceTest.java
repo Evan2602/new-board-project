@@ -1,9 +1,8 @@
-package com.dong.board.service;
+package com.dong.board.domain.board;
 
-import com.dong.board.domain.Board;
 import com.dong.board.exception.BoardAccessDeniedException;
 import com.dong.board.exception.BoardNotFoundException;
-import com.dong.board.repository.BoardRepository;
+import com.dong.board.infrastructure.board.BoardRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

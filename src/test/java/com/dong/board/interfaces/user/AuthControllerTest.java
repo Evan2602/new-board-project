@@ -1,14 +1,15 @@
-package com.dong.board.controller;
+package com.dong.board.interfaces.user;
 
 import com.dong.board.dto.LoginRequest;
 import com.dong.board.dto.SignUpRequest;
 import com.dong.board.exception.DuplicateUsernameException;
 import com.dong.board.exception.InvalidCredentialsException;
+import com.dong.board.interfaces.user.api.AuthController;
 import com.dong.board.security.JwtProvider;
-import com.dong.board.service.AuthResult;
-import com.dong.board.service.AuthService;
-import com.dong.board.service.LoginCommand;
-import com.dong.board.service.SignUpCommand;
+import com.dong.board.domain.user.AuthResult;
+import com.dong.board.domain.user.AuthService;
+import com.dong.board.domain.user.LoginCommand;
+import com.dong.board.domain.user.SignUpCommand;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.dong.board.dto;
 
-import com.dong.board.service.UpdateBoardCommand;
+import com.dong.board.domain.board.UpdateBoardCommand;
 import jakarta.validation.constraints.NotBlank;
 
 /**

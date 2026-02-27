@@ -1,6 +1,6 @@
 package com.dong.board.dto;
 
-import com.dong.board.service.AuthResult;
+import com.dong.board.domain.user.AuthResult;
 
 /**
  * 인증 HTTP 응답 DTO (회원가입/로그인 공통)

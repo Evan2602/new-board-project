@@ -1,11 +1,11 @@
-package com.dong.board.service;
+package com.dong.board.domain.board;
 
-import com.dong.board.domain.Board;
-import com.dong.board.domain.User;
+import com.dong.board.domain.user.User;
 import com.dong.board.exception.BoardAccessDeniedException;
 import com.dong.board.exception.BoardNotFoundException;
-import com.dong.board.repository.BoardRepository;
-import com.dong.board.repository.UserRepository;
+import com.dong.board.infrastructure.board.BoardRepository;
+import com.dong.board.infrastructure.user.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,17 +19,12 @@ import java.util.List;
  * - 일치하면 수정/삭제 허용, 불일치하면 403 예외 발생
  */
 @Service
+@RequiredArgsConstructor
 public class BoardService {
 
     // 게시글 저장/조회/삭제를 담당하는 저장소
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
-
-    // 생성자 주입 (Spring이 BoardRepository 빈을 자동으로 주입)
-    public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
-        this.boardRepository = boardRepository;
-        this.userRepository = userRepository;
-    }
 
     /**
      * 게시글 단건 조회

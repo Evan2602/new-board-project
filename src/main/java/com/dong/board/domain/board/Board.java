@@ -1,4 +1,4 @@
-package com.dong.board.domain;
+package com.dong.board.domain.board;
 
 import lombok.Getter;
 

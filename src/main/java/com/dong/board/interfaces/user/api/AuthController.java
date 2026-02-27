@@ -1,9 +1,9 @@
-package com.dong.board.controller;
+package com.dong.board.interfaces.user.api;
 
 import com.dong.board.dto.AuthResponse;
 import com.dong.board.dto.LoginRequest;
 import com.dong.board.dto.SignUpRequest;
-import com.dong.board.service.AuthService;
+import com.dong.board.domain.user.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

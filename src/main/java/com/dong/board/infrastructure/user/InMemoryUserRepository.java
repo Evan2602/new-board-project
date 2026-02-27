@@ -1,6 +1,6 @@
-package com.dong.board.repository;
+package com.dong.board.infrastructure.user;
 
-import com.dong.board.domain.User;
+import com.dong.board.domain.user.User;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;

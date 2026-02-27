@@ -1,4 +1,4 @@
-package com.dong.board.service;
+package com.dong.board.domain.board;
 
 /**
  * 게시글 생성 서비스 요청 커맨드

@@ -1,6 +1,6 @@
 package com.dong.board.dto;
 
-import com.dong.board.service.CreateBoardCommand;
+import com.dong.board.domain.board.CreateBoardCommand;
 import jakarta.validation.constraints.NotBlank;
 
 /**

@@ -1,4 +1,4 @@
-package com.dong.board.service;
+package com.dong.board.domain.board;
 
 import java.time.LocalDateTime;
 

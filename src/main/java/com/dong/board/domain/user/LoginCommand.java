@@ -1,4 +1,4 @@
-package com.dong.board.service;
+package com.dong.board.domain.user;
 
 /**
  * 로그인 서비스 요청 커맨드

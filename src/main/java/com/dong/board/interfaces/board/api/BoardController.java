@@ -1,9 +1,9 @@
-package com.dong.board.controller;
+package com.dong.board.interfaces.board.api;
 
 import com.dong.board.dto.BoardResponse;
 import com.dong.board.dto.CreateBoardRequest;
 import com.dong.board.dto.UpdateBoardRequest;
-import com.dong.board.service.BoardService;
+import com.dong.board.domain.board.BoardService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
