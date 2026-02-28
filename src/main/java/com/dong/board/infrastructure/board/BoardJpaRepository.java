@@ -17,4 +17,10 @@ public interface BoardJpaRepository extends JpaRepository<JpaBoardEntity, Long> 
      * SELECT * FROM boards WHERE author_id = ? ORDER BY created_at DESC
      */
     List<JpaBoardEntity> findByAuthorIdOrderByCreatedAtDesc(String authorId);
+
+    /**
+     * 전체 게시글 목록 조회 (작성날짜 오름차순 - 오래된 글이 먼저, 최신 글이 마지막)
+     * SELECT * FROM boards ORDER BY created_at ASC
+     */
+    List<JpaBoardEntity> findAllByOrderByCreatedAtDesc();
 }

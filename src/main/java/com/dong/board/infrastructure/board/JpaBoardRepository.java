@@ -43,11 +43,11 @@ public class JpaBoardRepository implements BoardRepository {
     }
 
     /**
-     * 전체 게시글 목록 조회
+     * 전체 게시글 목록 조회 (작성날짜 오름차순 - 오래된 글이 먼저, 최신 글이 마지막)
      */
     @Override
     public List<Board> findAll() {
-        return boardJpaRepository.findAll().stream()
+        return boardJpaRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(JpaBoardEntity::toDomain)
                 .toList();
     }
