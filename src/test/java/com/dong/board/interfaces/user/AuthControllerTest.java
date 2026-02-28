@@ -4,8 +4,10 @@ import com.dong.board.dto.LoginRequest;
 import com.dong.board.dto.SignUpRequest;
 import com.dong.board.exception.DuplicateUsernameException;
 import com.dong.board.exception.InvalidCredentialsException;
+import com.dong.board.infrastructure.log.RequestLogRepository;
 import com.dong.board.interfaces.user.api.AuthController;
 import com.dong.board.security.JwtProvider;
+import com.dong.board.security.SecurityConfig;
 import com.dong.board.domain.user.AuthResult;
 import com.dong.board.domain.user.AuthService;
 import com.dong.board.domain.user.LoginCommand;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
+@Import(SecurityConfig.class)
 class AuthControllerTest {
 
     @Autowired
@@ -40,6 +44,10 @@ class AuthControllerTest {
     // JwtAuthenticationFilter가 JwtProvider에 의존하므로 모킹 필요
     @MockitoBean
     private JwtProvider jwtProvider;
+
+    // LoggingFilter가 RequestLogRepository에 의존하므로 모킹 필요
+    @MockitoBean
+    private RequestLogRepository requestLogRepository;
 
     @Test
     @DisplayName("POST /api/auth/sign-up → 201 회원가입 성공")

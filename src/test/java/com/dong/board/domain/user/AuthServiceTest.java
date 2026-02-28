@@ -17,6 +17,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,8 +47,8 @@ class AuthServiceTest {
         given(passwordEncoder.encode("password123")).willReturn("encodedPassword");
         // 저장 시 그대로 반환 (인메모리 저장소 동작 모방)
         given(userRepository.save(any(User.class))).willAnswer(inv -> inv.getArgument(0));
-        // userId로 토큰 생성
-        given(jwtProvider.generateToken("hong123")).willReturn("test.jwt.token");
+        // userId + role로 토큰 생성 (role은 "ROLE_USER" 고정이므로 anyString()으로 매칭)
+        given(jwtProvider.generateToken(eq("hong123"), anyString())).willReturn("test.jwt.token");
 
         // when
         AuthResult result = authService.signUp(command);
@@ -80,7 +82,7 @@ class AuthServiceTest {
         User user = User.create(1L, "hong123", "홍길동", "encodedPassword");
         given(userRepository.findByUserId("hong123")).willReturn(Optional.of(user));
         given(passwordEncoder.matches("password123", "encodedPassword")).willReturn(true);
-        given(jwtProvider.generateToken("hong123")).willReturn("test.jwt.token");
+        given(jwtProvider.generateToken(eq("hong123"), anyString())).willReturn("test.jwt.token");
 
         // when
         AuthResult result = authService.login(command);
