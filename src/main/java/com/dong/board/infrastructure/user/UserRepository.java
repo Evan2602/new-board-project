@@ -1,6 +1,8 @@
 package com.dong.board.infrastructure.user;
 
 import com.dong.board.domain.user.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
@@ -14,20 +16,31 @@ public interface UserRepository {
     User save(User user);
 
     /**
-     * 로그인 ID로 사용자 조회
-     * 로그인 처리 시 사용됩니다
+     * DB 고유 ID로 사용자 조회
+     * 관리자 회원 상세 조회 시 사용
      *
-     * @param userId 로그인 ID (예: "hong123")
+     * @param id DB 고유 ID
      * @return 사용자가 존재하면 Optional.of(user), 없으면 Optional.empty()
+     */
+    Optional<User> findById(Long id);
+
+    /**
+     * 로그인 ID로 사용자 조회
      */
     Optional<User> findByUserId(String userId);
 
     /**
      * 로그인 ID가 이미 사용 중인지 확인
-     * 회원가입 시 중복 검사에 사용됩니다
-     *
-     * @param userId 로그인 ID (예: "hong123")
-     * @return 이미 존재하면 true, 사용 가능하면 false
      */
     boolean existsByUserId(String userId);
+
+    /**
+     * 닉네임 검색 + 페이징 조회 (관리자 회원 목록 조회용)
+     * nicknameKeyword가 null이면 전체 조회
+     *
+     * @param nicknameKeyword 닉네임 검색어 (부분 일치, null이면 전체)
+     * @param pageable        페이징 및 정렬 정보
+     * @return 페이징된 사용자 목록
+     */
+    Page<User> findAll(String nicknameKeyword, Pageable pageable);
 }

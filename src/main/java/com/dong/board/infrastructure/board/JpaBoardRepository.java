@@ -67,4 +67,15 @@ public class JpaBoardRepository implements BoardRepository {
     public boolean existsById(Long id) {
         return boardJpaRepository.existsById(id);
     }
+
+    /**
+     * 특정 작성자의 게시글 목록 조회 (최신순)
+     * 관리자 회원 상세 조회 시 작성 게시글 목록 표시용
+     */
+    @Override
+    public List<Board> findByAuthorId(String authorId) {
+        return boardJpaRepository.findByAuthorIdOrderByCreatedAtDesc(authorId).stream()
+                .map(JpaBoardEntity::toDomain)
+                .toList();
+    }
 }

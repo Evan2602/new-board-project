@@ -2,6 +2,8 @@ package com.dong.board.infrastructure.user;
 
 import com.dong.board.domain.user.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -31,6 +33,15 @@ public class JpaUserRepository implements UserRepository {
     }
 
     /**
+     * DB 고유 ID로 사용자 조회
+     */
+    @Override
+    public Optional<User> findById(Long id) {
+        return userJpaRepository.findById(id)
+                .map(JpaUserEntity::toDomain);
+    }
+
+    /**
      * 로그인 ID로 사용자 조회
      * 로그인 처리 및 닉네임 조회 시 사용
      */
@@ -47,5 +58,21 @@ public class JpaUserRepository implements UserRepository {
     @Override
     public boolean existsByUserId(String userId) {
         return userJpaRepository.existsByUserId(userId);
+    }
+
+    /**
+     * 닉네임 검색 + 페이징 조회
+     * nicknameKeyword가 null 또는 빈 문자열이면 전체 조회
+     */
+    @Override
+    public Page<User> findAll(String nicknameKeyword, Pageable pageable) {
+        if (nicknameKeyword == null || nicknameKeyword.isBlank()) {
+            // 검색어 없으면 전체 조회 (JpaRepository 기본 제공 메서드 활용)
+            return userJpaRepository.findAll(pageable)
+                    .map(JpaUserEntity::toDomain);
+        }
+        // 닉네임 부분 일치 검색
+        return userJpaRepository.findByUsernameContaining(nicknameKeyword, pageable)
+                .map(JpaUserEntity::toDomain);
     }
 }

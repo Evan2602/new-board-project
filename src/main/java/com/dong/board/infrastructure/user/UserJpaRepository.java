@@ -1,5 +1,7 @@
 package com.dong.board.infrastructure.user;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -24,4 +26,10 @@ public interface UserJpaRepository extends JpaRepository<JpaUserEntity, Long> {
      * SELECT COUNT(*) > 0 FROM users WHERE user_id = ?
      */
     boolean existsByUserId(String userId);
+
+    /**
+     * 닉네임 부분 일치 검색 + 페이징
+     * SELECT * FROM users WHERE username LIKE %keyword%
+     */
+    Page<JpaUserEntity> findByUsernameContaining(String keyword, Pageable pageable);
 }

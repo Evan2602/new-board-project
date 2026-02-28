@@ -40,4 +40,22 @@ public class InMemoryUserRepository implements UserRepository {
         // Map의 key에 해당 로그인 ID가 있는지 확인
         return store.containsKey(userId);
     }
+
+    /**
+     * DB 고유 ID로 사용자 조회 (인메모리 미사용 구현체)
+     */
+    @Override
+    public java.util.Optional<User> findById(Long id) {
+        return store.values().stream()
+                .filter(user -> id.equals(user.getId()))
+                .findFirst();
+    }
+
+    /**
+     * 닉네임 검색 + 페이징 조회 (인메모리 미사용 구현체)
+     */
+    @Override
+    public org.springframework.data.domain.Page<User> findAll(String nicknameKeyword, org.springframework.data.domain.Pageable pageable) {
+        return org.springframework.data.domain.Page.empty(pageable);
+    }
 }

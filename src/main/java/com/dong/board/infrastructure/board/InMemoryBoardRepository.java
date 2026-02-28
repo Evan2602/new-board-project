@@ -45,4 +45,14 @@ public class InMemoryBoardRepository implements BoardRepository {
     public boolean existsById(Long id) {
         return store.containsKey(id);
     }
+
+    /**
+     * 작성자 ID로 게시글 목록 조회 (인메모리 미사용 구현체 — 빈 목록 반환)
+     */
+    @Override
+    public List<Board> findByAuthorId(String authorId) {
+        return store.values().stream()
+                .filter(board -> board.getAuthorId().equals(authorId))
+                .toList();
+    }
 }
