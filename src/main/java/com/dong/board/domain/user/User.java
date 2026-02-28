@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
  * - userId: 로그인할 때 쓰는 ID (사용자가 직접 지정, 예: "hong123")
  * - username: 화면에 표시할 이름 (닉네임, 예: "홍길동")
  * - role: 사용자 권한 (ROLE_USER 일반, ROLE_ADMIN 관리자)
+ * - status: 계정 상태 (ACTIVE 정상, SUSPENDED 정지, WITHDRAWN 탈퇴)
  */
 @Getter
 public class User {
@@ -23,6 +24,18 @@ public class User {
         ROLE_ADMIN
     }
 
+    /**
+     * 계정 상태
+     * - ACTIVE: 정상 (로그인 및 모든 기능 이용 가능)
+     * - SUSPENDED: 정지 (로그인 불가, 관리자에 의해 정지된 상태)
+     * - WITHDRAWN: 탈퇴 (로그인 불가, 탈퇴 처리된 상태)
+     */
+    public enum UserStatus {
+        ACTIVE,
+        SUSPENDED,
+        WITHDRAWN
+    }
+
     // 시스템이 자동으로 부여하는 고유 식별 번호 (1, 2, 3 ...)
     private final Long id;
 
@@ -35,7 +48,8 @@ public class User {
     private final String username;
 
     // BCrypt 알고리즘으로 해시된 비밀번호 (원문 복원 불가)
-    private final String password;
+    // 비밀번호 초기화 시 변경 가능
+    private String password;
 
     // 가입한 날짜/시간 (한 번 설정 후 변경 불가)
     private final LocalDateTime createdAt;
@@ -43,20 +57,23 @@ public class User {
     // 사용자 권한 역할 (기본값 ROLE_USER)
     private final UserRole role;
 
+    // 계정 상태 (기본값 ACTIVE, 관리자가 변경 가능)
+    private UserStatus status;
+
     // 외부에서 new User(...)로 직접 생성하지 못하도록 private으로 막음
     private User(Long id, String userId, String username, String password,
-                 LocalDateTime createdAt, UserRole role) {
+                 LocalDateTime createdAt, UserRole role, UserStatus status) {
         this.id = id;
         this.userId = userId;
         this.username = username;
         this.password = password;
         this.createdAt = createdAt;
         this.role = role;
+        this.status = status;
     }
 
     /**
      * 새 사용자 생성 정적 팩토리 메서드
-     * new User(...) 대신 이 메서드를 통해 생성 → 생성 의도가 명확해짐
      *
      * @param id              시스템이 부여하는 고유 번호
      * @param userId          로그인할 때 쓸 아이디 (예: "hong123")
@@ -64,32 +81,34 @@ public class User {
      * @param encodedPassword BCrypt로 이미 해시된 비밀번호
      */
     public static User create(Long id, String userId, String username, String encodedPassword) {
-        // 생성 시점의 현재 시각을 가입일로 기록, 기본 권한 ROLE_USER 부여
-        return new User(id, userId, username, encodedPassword, LocalDateTime.now(), UserRole.ROLE_USER);
+        return new User(id, userId, username, encodedPassword, LocalDateTime.now(),
+                UserRole.ROLE_USER, UserStatus.ACTIVE);
     }
 
     /**
      * 신규 일반 사용자 생성 (DB가 ID를 자동 발급할 때 사용)
-     * 기본 권한: ROLE_USER
+     * 기본 권한: ROLE_USER, 기본 상태: ACTIVE
      *
      * @param userId          로그인할 때 쓸 아이디 (예: "hong123")
      * @param username        화면에 표시할 이름 (예: "홍길동")
      * @param encodedPassword BCrypt로 이미 해시된 비밀번호
      */
     public static User createNew(String userId, String username, String encodedPassword) {
-        return new User(null, userId, username, encodedPassword, LocalDateTime.now(), UserRole.ROLE_USER);
+        return new User(null, userId, username, encodedPassword, LocalDateTime.now(),
+                UserRole.ROLE_USER, UserStatus.ACTIVE);
     }
 
     /**
      * 신규 관리자 계정 생성 (AdminInitializer에서만 사용)
-     * 권한: ROLE_ADMIN — /admin/** 접근 가능
+     * 권한: ROLE_ADMIN — /admin/** 접근 가능, 기본 상태: ACTIVE
      *
      * @param userId          관리자 로그인 ID
      * @param username        관리자 표시 이름
      * @param encodedPassword BCrypt로 이미 해시된 비밀번호
      */
     public static User createAdmin(String userId, String username, String encodedPassword) {
-        return new User(null, userId, username, encodedPassword, LocalDateTime.now(), UserRole.ROLE_ADMIN);
+        return new User(null, userId, username, encodedPassword, LocalDateTime.now(),
+                UserRole.ROLE_ADMIN, UserStatus.ACTIVE);
     }
 
     /**
@@ -102,9 +121,31 @@ public class User {
      * @param password  BCrypt 해시된 비밀번호
      * @param createdAt DB에 저장된 가입 시각
      * @param role      사용자 권한 역할
+     * @param status    계정 상태
      */
     public static User reconstruct(Long id, String userId, String username,
-                                   String password, LocalDateTime createdAt, UserRole role) {
-        return new User(id, userId, username, password, createdAt, role);
+                                   String password, LocalDateTime createdAt,
+                                   UserRole role, UserStatus status) {
+        return new User(id, userId, username, password, createdAt, role, status);
+    }
+
+    /**
+     * 계정 상태 변경 (관리자만 호출 가능)
+     * ACTIVE ↔ SUSPENDED ↔ WITHDRAWN 전환
+     *
+     * @param newStatus 변경할 상태
+     */
+    public void changeStatus(UserStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    /**
+     * 비밀번호 초기화 (관리자만 호출 가능)
+     * 임시 비밀번호로 교체 — BCrypt 해시된 값을 저장
+     *
+     * @param encodedPassword BCrypt로 이미 해시된 임시 비밀번호
+     */
+    public void resetPassword(String encodedPassword) {
+        this.password = encodedPassword;
     }
 }

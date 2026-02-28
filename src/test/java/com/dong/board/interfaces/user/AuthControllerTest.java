@@ -5,6 +5,7 @@ import com.dong.board.dto.SignUpRequest;
 import com.dong.board.exception.DuplicateUsernameException;
 import com.dong.board.exception.InvalidCredentialsException;
 import com.dong.board.infrastructure.log.RequestLogRepository;
+import com.dong.board.infrastructure.user.TokenBlacklistRepository;
 import com.dong.board.interfaces.user.api.AuthController;
 import com.dong.board.security.JwtProvider;
 import com.dong.board.security.SecurityConfig;
@@ -48,6 +49,10 @@ class AuthControllerTest {
     // LoggingFilter가 RequestLogRepository에 의존하므로 모킹 필요
     @MockitoBean
     private RequestLogRepository requestLogRepository;
+
+    // JwtAuthenticationFilter → TokenBlacklistRepository 의존성 충족 필수
+    @MockitoBean
+    private TokenBlacklistRepository tokenBlacklistRepository;
 
     @Test
     @DisplayName("POST /api/auth/sign-up → 201 회원가입 성공")

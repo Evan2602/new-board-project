@@ -2,6 +2,8 @@ package com.dong.board.domain.user;
 
 import com.dong.board.exception.DuplicateUsernameException;
 import com.dong.board.exception.InvalidCredentialsException;
+import com.dong.board.exception.UserSuspendedException;
+import com.dong.board.exception.UserWithdrawnException;
 import com.dong.board.infrastructure.user.UserRepository;
 import com.dong.board.security.JwtProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,7 +14,7 @@ import org.springframework.stereotype.Service;
  *
  * 책임:
  * - 회원가입: 아이디 중복 확인 → 비밀번호 해시 → 사용자 저장 → JWT 발급
- * - 로그인: 사용자 조회 → 비밀번호 검증 → JWT 발급
+ * - 로그인: 사용자 조회 → 계정 상태 확인 → 비밀번호 검증 → JWT 발급
  */
 @Service
 public class AuthService {
@@ -71,24 +73,33 @@ public class AuthService {
 
     /**
      * 로그인 처리
-     * 흐름: userId로 사용자 조회 → 비밀번호 일치 확인 → JWT 발급
+     * 흐름: userId로 사용자 조회 → 계정 상태 확인 → 비밀번호 일치 확인 → JWT 발급
      *
      * @param command userId(로그인 ID), password(원문 비밀번호)
      * @return accessToken(JWT), userId, username
      * @throws InvalidCredentialsException 사용자가 없거나 비밀번호가 틀린 경우
+     * @throws UserSuspendedException      계정이 정지된 경우
+     * @throws UserWithdrawnException      탈퇴한 계정인 경우
      */
     public AuthResult login(LoginCommand command) {
         // 1. userId로 사용자 조회, 없으면 인증 실패 예외 발생
         User user = userRepository.findByUserId(command.userId())
                 .orElseThrow(InvalidCredentialsException::new);
 
-        // 2. 입력한 비밀번호와 저장된 해시 비교
-        // passwordEncoder.matches("원문", "해시") → BCrypt가 내부적으로 복호화 없이 비교
+        // 2. 계정 상태 확인 — 정지 또는 탈퇴 계정은 로그인 불가
+        if (user.getStatus() == User.UserStatus.SUSPENDED) {
+            throw new UserSuspendedException();
+        }
+        if (user.getStatus() == User.UserStatus.WITHDRAWN) {
+            throw new UserWithdrawnException();
+        }
+
+        // 3. 비밀번호 검증
         if (!passwordEncoder.matches(command.password(), user.getPassword())) {
             throw new InvalidCredentialsException();
         }
 
-        // 3. JWT 토큰 생성 후 반환 (userId + role 포함)
+        // 4. JWT 토큰 생성 후 반환 (userId + role 포함)
         String token = jwtProvider.generateToken(user.getUserId(), user.getRole().name());
         return new AuthResult(token, user.getUserId(), user.getUsername());
     }

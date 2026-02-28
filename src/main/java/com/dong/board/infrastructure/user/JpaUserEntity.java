@@ -43,6 +43,11 @@ public class JpaUserEntity {
     @Column(nullable = false, length = 20)
     private User.UserRole role;
 
+    // 계정 상태 (ACTIVE 정상, SUSPENDED 정지, WITHDRAWN 탈퇴)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private User.UserStatus status;
+
     /**
      * 도메인 User → JPA 엔티티 변환
      *
@@ -57,6 +62,7 @@ public class JpaUserEntity {
         entity.password = user.getPassword();
         entity.createdAt = user.getCreatedAt();
         entity.role = user.getRole();
+        entity.status = user.getStatus();
         return entity;
     }
 
@@ -67,6 +73,6 @@ public class JpaUserEntity {
      * @return 도메인 사용자 객체
      */
     public User toDomain() {
-        return User.reconstruct(id, userId, username, password, createdAt, role);
+        return User.reconstruct(id, userId, username, password, createdAt, role, status);
     }
 }

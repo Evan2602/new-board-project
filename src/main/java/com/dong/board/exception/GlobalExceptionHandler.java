@@ -92,6 +92,39 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 회원 미존재 → 404 Not Found
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFoundException(
+            UserNotFoundException e, HttpServletRequest request) {
+        storeErrorInfo(request, e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("USER_NOT_FOUND", e.getMessage(), LocalDateTime.now()));
+    }
+
+    /**
+     * 정지된 계정 로그인 시도 → 403 Forbidden
+     */
+    @ExceptionHandler(UserSuspendedException.class)
+    public ResponseEntity<ErrorResponse> handleUserSuspendedException(
+            UserSuspendedException e, HttpServletRequest request) {
+        storeErrorInfo(request, e);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("USER_SUSPENDED", e.getMessage(), LocalDateTime.now()));
+    }
+
+    /**
+     * 탈퇴한 계정 로그인 시도 → 403 Forbidden
+     */
+    @ExceptionHandler(UserWithdrawnException.class)
+    public ResponseEntity<ErrorResponse> handleUserWithdrawnException(
+            UserWithdrawnException e, HttpServletRequest request) {
+        storeErrorInfo(request, e);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("USER_WITHDRAWN", e.getMessage(), LocalDateTime.now()));
+    }
+
+    /**
      * 그 외 예외 → 500 Internal Server Error
      */
     @ExceptionHandler(Exception.class)
