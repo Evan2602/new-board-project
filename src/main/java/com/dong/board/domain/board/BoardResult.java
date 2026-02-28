@@ -10,8 +10,9 @@ public record BoardResult(
         Long id,
         String title,
         String content,
-        String authorId,   // 작성자의 로그인 ID (예: "hong123")
-        String userName,   // 작성자의 닉네임 (예: "홍길동")
+        String authorId,       // 작성자의 로그인 ID (예: "hong123")
+        String userName,       // 작성자의 닉네임 (예: "홍길동")
+        boolean isAdminAuthor, // 작성자가 관리자 권한(ROLE_ADMIN)을 가지고 있는지 여부
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

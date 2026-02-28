@@ -53,6 +53,7 @@ public class BoardService {
     public List<BoardResult> getBoardList() {
         // 모든 게시글을 조회해서 각각 BoardResult로 변환
         return boardRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(Board::getCreatedAt).reversed())  // 최신순 (최신이 먼저)
                 .map(this::toResult)
                 .toList();
     }
@@ -125,9 +126,15 @@ public class BoardService {
      * 사용자를 찾지 못하면 authorId를 대체값으로 사용합니다
      */
     private BoardResult toResult(Board board) {
-        String userName = userRepository.findByUserId(board.getAuthorId())
+        var userOpt = userRepository.findByUserId(board.getAuthorId());
+
+        String userName = userOpt
                 .map(User::getUsername)
                 .orElse(board.getAuthorId());
+
+        boolean isAdminAuthor = userOpt
+                .map(u -> u.getRole() == User.UserRole.ROLE_ADMIN)
+                .orElse(false);
 
         return new BoardResult(
                 board.getId(),
@@ -135,6 +142,7 @@ public class BoardService {
                 board.getContent(),
                 board.getAuthorId(),
                 userName,
+                isAdminAuthor,
                 board.getCreatedAt(),
                 board.getUpdatedAt()
         );

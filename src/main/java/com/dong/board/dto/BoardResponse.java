@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
  *   "content": "게시글 내용",
  *   "authorId": "hong123",
  *   "userName": "홍길동",
+ *   "isAdminAuthor": false,
  *   "createdAt": "2024-01-01T12:00:00",
  *   "updatedAt": "2024-01-01T12:00:00"
  * }
@@ -24,7 +25,8 @@ public record BoardResponse(
         String title,
         String content,
         String authorId,
-        String userName,         // 작성자 닉네임 (예: "홍길동")
+        String userName,
+        boolean isAdminAuthor,   // 작성자가 관리자 권한(ROLE_ADMIN)을 가지고 있는지 여부
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -36,8 +38,9 @@ public record BoardResponse(
                 result.id(),
                 result.title(),
                 result.content(),
-                result.authorId(),    // authorId로 변경
+                result.authorId(),
                 result.userName(),
+                result.isAdminAuthor(),
                 result.createdAt(),
                 result.updatedAt()
         );
