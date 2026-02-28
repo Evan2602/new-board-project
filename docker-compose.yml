@@ -1,0 +1,25 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: board-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ehdghks2602
+      MYSQL_DATABASE: board
+      MYSQL_USER: dong
+      MYSQL_PASSWORD: ehdghks2602
+    ports:
+      - "3306:3306"
+    volumes:
+      - board-mysql-data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: board-zipkin
+    ports:
+      - "9411:9411"
+    depends_on:
+      - mysql
+
+volumes:
+  board-mysql-data:
