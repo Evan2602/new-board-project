@@ -62,9 +62,8 @@ public class AuthService {
         // 4. 저장소에 사용자 저장
         userRepository.save(user);
 
-        // 5. JWT 토큰 생성: subject에 userId(로그인 ID)를 저장
-        // userId를 subject로 쓰는 이유: 이름은 바뀔 수 있지만 로그인 ID는 안 바뀜
-        String token = jwtProvider.generateToken(user.getUserId());
+        // 5. JWT 토큰 생성: userId(로그인 ID)와 role(권한)을 페이로드에 저장
+        String token = jwtProvider.generateToken(user.getUserId(), user.getRole().name());
 
         // 6. 결과 반환: 토큰 + userId + username 모두 포함
         return new AuthResult(token, user.getUserId(), user.getUsername());
@@ -89,8 +88,8 @@ public class AuthService {
             throw new InvalidCredentialsException();
         }
 
-        // 3. JWT 토큰 생성 후 반환
-        String token = jwtProvider.generateToken(user.getUserId());
+        // 3. JWT 토큰 생성 후 반환 (userId + role 포함)
+        String token = jwtProvider.generateToken(user.getUserId(), user.getRole().name());
         return new AuthResult(token, user.getUserId(), user.getUsername());
     }
 }

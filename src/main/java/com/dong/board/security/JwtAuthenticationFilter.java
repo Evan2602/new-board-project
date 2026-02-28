@@ -5,12 +5,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 /**
  * JWT 인증 필터 — 모든 HTTP 요청마다 한 번씩 실행됩니다 (OncePerRequestFilter)
@@ -48,19 +50,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 2. 토큰이 존재하고 유효한 경우에만 인증 처리
         if (token != null && jwtProvider.validateToken(token)) {
-            // 3. 토큰에서 로그인 ID(userId) 추출 (예: "hong123")
+            // 3. 토큰에서 로그인 ID(userId)와 권한 역할(role) 추출
             String userId = jwtProvider.extractUserId(token);
+            String role = jwtProvider.extractRole(token);
+
+            // role 클레임이 없는 구형 토큰은 기본값 ROLE_USER 적용
+            String effectiveRole = (role != null) ? role : "ROLE_USER";
 
             // 4. Spring Security 인증 객체 생성
-            // UsernamePasswordAuthenticationToken: "이 요청의 주인은 userId이다"라는 증명서
             // - principal(주체): userId 문자열 — auth.getName()으로 꺼낼 수 있음
-            // - credentials(자격증명): null — 이미 토큰으로 검증했으므로 비밀번호 불필요
-            // - authorities(권한 목록): 빈 리스트 — 현재는 역할(Role) 구분 없음
+            // - authorities(권한 목록): JWT에서 추출한 role → GrantedAuthority로 변환
+            //   예) "ROLE_ADMIN" → hasAuthority("ROLE_ADMIN") 매칭
+            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(effectiveRole));
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
             // 5. SecurityContextHolder에 인증 정보 저장
-            // 이 스레드(요청)가 끝날 때까지 auth 정보 유지 → 컨트롤러에서 참조 가능
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

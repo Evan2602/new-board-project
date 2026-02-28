@@ -17,3 +17,8 @@ spring:
 jwt:
   secret: "board-jwt-secret-key-must-be-32-chars-minimum!!"
   expiration-ms: 86400000
+
+# 기본 관리자 계정 설정 (운영 환경에서는 환경 변수로 오버라이드 권장)
+admin:
+  default-id: "admin"
+  default-password: "Admin1234!"

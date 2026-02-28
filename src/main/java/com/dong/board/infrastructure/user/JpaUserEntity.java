@@ -38,6 +38,11 @@ public class JpaUserEntity {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // 사용자 권한 역할 (문자열로 저장: "ROLE_USER", "ROLE_ADMIN")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private User.UserRole role;
+
     /**
      * 도메인 User → JPA 엔티티 변환
      *
@@ -51,6 +56,7 @@ public class JpaUserEntity {
         entity.username = user.getUsername();
         entity.password = user.getPassword();
         entity.createdAt = user.getCreatedAt();
+        entity.role = user.getRole();
         return entity;
     }
 
@@ -61,6 +67,6 @@ public class JpaUserEntity {
      * @return 도메인 사용자 객체
      */
     public User toDomain() {
-        return User.reconstruct(id, userId, username, password, createdAt);
+        return User.reconstruct(id, userId, username, password, createdAt, role);
     }
 }

@@ -40,27 +40,33 @@ public class JwtProvider {
     }
 
     /**
-     * 로그인 ID로 JWT 액세스 토큰 생성
+     * 로그인 ID와 권한 역할로 JWT 액세스 토큰 생성
      *
-     * 생성 흐름: userId → JWT payload의 subject에 저장 → 서명 → 문자열 반환
-     * userId를 저장하는 이유: 나중에 토큰에서 꺼내서 "누구의 요청인지" 식별하기 위해
+     * @param userId 로그인 ID (예: "hong123")
+     * @param role   사용자 권한 (예: "ROLE_USER", "ROLE_ADMIN")
+     * @return JWT 토큰 문자열
+     */
+    public String generateToken(String userId, String role) {
+        return Jwts.builder()
+                // subject: 토큰 주인을 식별하는 로그인 ID
+                .subject(userId)
+                // role 클레임: 권한 정보 포함 (필터에서 GrantedAuthority로 변환)
+                .claim("role", role)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .signWith(key)
+                .compact();
+    }
+
+    /**
+     * 로그인 ID로 JWT 액세스 토큰 생성 (기본 권한 ROLE_USER)
+     * 하위 호환성 유지용
      *
      * @param userId 로그인 ID (예: "hong123")
      * @return JWT 토큰 문자열 (예: "eyJhbGciOiJIUzI1NiJ9....")
      */
     public String generateToken(String userId) {
-        return Jwts.builder()
-                // subject: "이 토큰이 누구 것인가" — 로그인 ID를 저장
-                // 이름(username) 대신 ID를 저장하는 이유: 이름은 바뀔 수 있지만 ID는 안 바뀜
-                .subject(userId)
-                // 토큰 발급 시각 기록
-                .issuedAt(new Date())
-                // 만료 시각 = 현재 시각 + 유효 기간
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
-                // 시크릿 키로 서명 (HMAC-SHA256 알고리즘)
-                .signWith(key)
-                // 최종 JWT 문자열로 직렬화 (header.payload.signature 형태)
-                .compact();
+        return generateToken(userId, "ROLE_USER");
     }
 
     /**
@@ -80,6 +86,21 @@ public class JwtProvider {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
+    }
+
+    /**
+     * JWT 토큰에서 권한 역할 추출
+     *
+     * @param token JWT 토큰 문자열
+     * @return 권한 문자열 (예: "ROLE_ADMIN"), 클레임 없으면 null
+     */
+    public String extractRole(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
     }
 
     /**

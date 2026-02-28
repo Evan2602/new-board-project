@@ -50,18 +50,28 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         // GET /api/boards/** (게시글 조회): 누구나 접근 가능 (토큰 불필요)
                         .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
+                        // /admin/** (관리자 API): ROLE_ADMIN 권한 필수
+                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                         // 그 외 모든 요청 (POST/PUT/DELETE /api/boards 등): 유효한 JWT 필요
                         .anyRequest().authenticated()
                 )
 
-                // 인증 실패(401 Unauthorized) 응답 커스터마이징
-                // 기본 로그인 페이지 리다이렉트 대신 JSON 에러 응답 반환
+                // 인증/인가 실패 응답 커스터마이징
                 .exceptionHandling(exc -> exc
+                        // 401 Unauthorized: 인증 정보 없거나 유효하지 않은 경우
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // HTTP 401
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write(
                                     "{\"code\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\"}"
+                            );
+                        })
+                        // 403 Forbidden: 인증은 됐지만 권한 부족 (예: 일반 사용자가 /admin/** 접근)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"code\":\"ACCESS_DENIED\",\"message\":\"관리자 권한이 필요합니다.\"}"
                             );
                         })
                 )

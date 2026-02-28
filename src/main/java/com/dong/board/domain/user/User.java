@@ -8,9 +8,20 @@ import java.time.LocalDateTime;
  * 사용자 도메인 엔티티
  * - userId: 로그인할 때 쓰는 ID (사용자가 직접 지정, 예: "hong123")
  * - username: 화면에 표시할 이름 (닉네임, 예: "홍길동")
+ * - role: 사용자 권한 (ROLE_USER 일반, ROLE_ADMIN 관리자)
  */
 @Getter
 public class User {
+
+    /**
+     * 사용자 권한 역할
+     * - ROLE_USER: 일반 사용자 (게시글 CRUD)
+     * - ROLE_ADMIN: 관리자 (/admin/** 접근 가능)
+     */
+    public enum UserRole {
+        ROLE_USER,
+        ROLE_ADMIN
+    }
 
     // 시스템이 자동으로 부여하는 고유 식별 번호 (1, 2, 3 ...)
     private final Long id;
@@ -29,13 +40,18 @@ public class User {
     // 가입한 날짜/시간 (한 번 설정 후 변경 불가)
     private final LocalDateTime createdAt;
 
+    // 사용자 권한 역할 (기본값 ROLE_USER)
+    private final UserRole role;
+
     // 외부에서 new User(...)로 직접 생성하지 못하도록 private으로 막음
-    private User(Long id, String userId, String username, String password, LocalDateTime createdAt) {
+    private User(Long id, String userId, String username, String password,
+                 LocalDateTime createdAt, UserRole role) {
         this.id = id;
         this.userId = userId;
         this.username = username;
         this.password = password;
         this.createdAt = createdAt;
+        this.role = role;
     }
 
     /**
@@ -48,20 +64,32 @@ public class User {
      * @param encodedPassword BCrypt로 이미 해시된 비밀번호
      */
     public static User create(Long id, String userId, String username, String encodedPassword) {
-        // 생성 시점의 현재 시각을 가입일로 기록
-        return new User(id, userId, username, encodedPassword, LocalDateTime.now());
+        // 생성 시점의 현재 시각을 가입일로 기록, 기본 권한 ROLE_USER 부여
+        return new User(id, userId, username, encodedPassword, LocalDateTime.now(), UserRole.ROLE_USER);
     }
 
     /**
-     * 신규 사용자 생성 (DB가 ID를 자동 발급할 때 사용)
-     * JPA 연동 시 ID는 null로 생성하고, save() 후 DB가 AUTO_INCREMENT로 발급
+     * 신규 일반 사용자 생성 (DB가 ID를 자동 발급할 때 사용)
+     * 기본 권한: ROLE_USER
      *
      * @param userId          로그인할 때 쓸 아이디 (예: "hong123")
      * @param username        화면에 표시할 이름 (예: "홍길동")
      * @param encodedPassword BCrypt로 이미 해시된 비밀번호
      */
     public static User createNew(String userId, String username, String encodedPassword) {
-        return new User(null, userId, username, encodedPassword, LocalDateTime.now());
+        return new User(null, userId, username, encodedPassword, LocalDateTime.now(), UserRole.ROLE_USER);
+    }
+
+    /**
+     * 신규 관리자 계정 생성 (AdminInitializer에서만 사용)
+     * 권한: ROLE_ADMIN — /admin/** 접근 가능
+     *
+     * @param userId          관리자 로그인 ID
+     * @param username        관리자 표시 이름
+     * @param encodedPassword BCrypt로 이미 해시된 비밀번호
+     */
+    public static User createAdmin(String userId, String username, String encodedPassword) {
+        return new User(null, userId, username, encodedPassword, LocalDateTime.now(), UserRole.ROLE_ADMIN);
     }
 
     /**
@@ -73,9 +101,10 @@ public class User {
      * @param username  닉네임
      * @param password  BCrypt 해시된 비밀번호
      * @param createdAt DB에 저장된 가입 시각
+     * @param role      사용자 권한 역할
      */
     public static User reconstruct(Long id, String userId, String username,
-                                   String password, LocalDateTime createdAt) {
-        return new User(id, userId, username, password, createdAt);
+                                   String password, LocalDateTime createdAt, UserRole role) {
+        return new User(id, userId, username, password, createdAt, role);
     }
 }
