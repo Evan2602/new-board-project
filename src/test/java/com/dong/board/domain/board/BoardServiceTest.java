@@ -3,6 +3,7 @@ package com.dong.board.domain.board;
 import com.dong.board.exception.BoardAccessDeniedException;
 import com.dong.board.exception.BoardNotFoundException;
 import com.dong.board.infrastructure.board.BoardRepository;
+import com.dong.board.infrastructure.user.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,11 @@ class BoardServiceTest {
 
     @Mock
     private BoardRepository boardRepository;
+
+    // BoardService.toResult()에서 작성자 닉네임 조회 시 사용
+    // 목킹하지 않으면 NPE 발생 → Mockito가 기본값(Optional.empty()) 반환
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private BoardService boardService;
@@ -77,8 +83,8 @@ class BoardServiceTest {
     void createBoard_success() {
         // given: authorId에 로그인 ID 전달
         CreateBoardCommand command = new CreateBoardCommand("제목", "내용", "hong123");
+        // save() 후 DB가 발급한 ID(1L)가 포함된 Board 반환을 모방
         Board board = Board.create(1L, "제목", "내용", "hong123");
-        given(boardRepository.generateId()).willReturn(1L);
         given(boardRepository.save(any(Board.class))).willReturn(board);
 
         // when

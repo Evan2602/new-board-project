@@ -51,4 +51,31 @@ public class User {
         // 생성 시점의 현재 시각을 가입일로 기록
         return new User(id, userId, username, encodedPassword, LocalDateTime.now());
     }
+
+    /**
+     * 신규 사용자 생성 (DB가 ID를 자동 발급할 때 사용)
+     * JPA 연동 시 ID는 null로 생성하고, save() 후 DB가 AUTO_INCREMENT로 발급
+     *
+     * @param userId          로그인할 때 쓸 아이디 (예: "hong123")
+     * @param username        화면에 표시할 이름 (예: "홍길동")
+     * @param encodedPassword BCrypt로 이미 해시된 비밀번호
+     */
+    public static User createNew(String userId, String username, String encodedPassword) {
+        return new User(null, userId, username, encodedPassword, LocalDateTime.now());
+    }
+
+    /**
+     * DB 조회 결과로부터 도메인 객체 복원
+     * JPA 인프라 레이어에서만 사용 — 비즈니스 로직에서 직접 호출 금지
+     *
+     * @param id        DB가 발급한 사용자 ID
+     * @param userId    로그인 ID
+     * @param username  닉네임
+     * @param password  BCrypt 해시된 비밀번호
+     * @param createdAt DB에 저장된 가입 시각
+     */
+    public static User reconstruct(Long id, String userId, String username,
+                                   String password, LocalDateTime createdAt) {
+        return new User(id, userId, username, password, createdAt);
+    }
 }

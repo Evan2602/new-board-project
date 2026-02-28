@@ -7,6 +7,7 @@ import com.dong.board.infrastructure.board.BoardRepository;
 import com.dong.board.infrastructure.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
  * - 일치하면 수정/삭제 허용, 불일치하면 403 예외 발생
  */
 @Service
+@Transactional         // 클래스 기본: 쓰기 트랜잭션 (조회 메서드는 readOnly로 재정의)
 @RequiredArgsConstructor
 public class BoardService {
 
@@ -33,6 +35,7 @@ public class BoardService {
      * @return 게시글 정보 (BoardResult)
      * @throws BoardNotFoundException 해당 ID의 게시글이 없을 때
      */
+    @Transactional(readOnly = true) // 읽기 전용: 영속성 컨텍스트 플러시 생략으로 성능 향상
     public BoardResult getBoard(Long id) {
         // 저장소에서 게시글 조회, 없으면 404 예외 발생
         Board board = boardRepository.findById(id)
@@ -46,6 +49,7 @@ public class BoardService {
      *
      * @return 모든 게시글 목록
      */
+    @Transactional(readOnly = true)
     public List<BoardResult> getBoardList() {
         // 모든 게시글을 조회해서 각각 BoardResult로 변환
         return boardRepository.findAll().stream()
@@ -61,11 +65,9 @@ public class BoardService {
      * @return 생성된 게시글 정보
      */
     public BoardResult createBoard(CreateBoardCommand command) {
-        // 자동 증가 ID 생성
-        Long id = boardRepository.generateId();
-        // 게시글 생성: authorId에 작성자의 로그인 ID 저장
-        Board board = Board.create(id, command.title(), command.content(), command.authorId());
-        // 저장소에 저장 후 결과 반환
+        // id=null로 생성 → save() 호출 후 DB가 AUTO_INCREMENT로 ID 발급
+        Board board = Board.createNew(command.title(), command.content(), command.authorId());
+        // 저장소에 저장 후 결과 반환 (반환된 board에는 DB 발급 ID가 포함됨)
         Board saved = boardRepository.save(board);
         return toResult(saved);
     }

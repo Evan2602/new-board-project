@@ -1,6 +1,18 @@
 spring:
   application:
     name: board
+  datasource:
+    url: jdbc:mysql://localhost:3306/board?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: dong
+    password: ehdghks2602
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update          # 개발 중: 스키마 자동 생성/변경 (운영 시 validate로 변경)
+    show-sql: true              # SQL 로그 출력
+    properties:
+      hibernate:
+        format_sql: true        # SQL 보기 좋게 포맷
 
 jwt:
   secret: "board-jwt-secret-key-must-be-32-chars-minimum!!"

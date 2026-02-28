@@ -57,6 +57,35 @@ public class Board {
     }
 
     /**
+     * 신규 게시글 생성 (DB가 ID를 자동 발급할 때 사용)
+     * JPA 연동 시 ID는 null로 생성하고, save() 후 DB가 AUTO_INCREMENT로 발급
+     *
+     * @param title    게시글 제목
+     * @param content  게시글 본문
+     * @param authorId 작성자의 로그인 ID (JWT에서 추출한 값)
+     */
+    public static Board createNew(String title, String content, String authorId) {
+        LocalDateTime now = LocalDateTime.now();
+        return new Board(null, title, content, authorId, now, now);
+    }
+
+    /**
+     * DB 조회 결과로부터 도메인 객체 복원
+     * JPA 인프라 레이어에서만 사용 — 비즈니스 로직에서 직접 호출 금지
+     *
+     * @param id        DB가 발급한 게시글 ID
+     * @param title     게시글 제목
+     * @param content   게시글 본문
+     * @param authorId  작성자 로그인 ID
+     * @param createdAt DB에 저장된 생성 시각
+     * @param updatedAt DB에 저장된 최종 수정 시각
+     */
+    public static Board reconstruct(Long id, String title, String content, String authorId,
+                                    LocalDateTime createdAt, LocalDateTime updatedAt) {
+        return new Board(id, title, content, authorId, createdAt, updatedAt);
+    }
+
+    /**
      * 게시글 내용 수정 (Setter 대신 의미 있는 메서드 사용)
      * 수정 시각도 자동으로 업데이트됩니다
      */

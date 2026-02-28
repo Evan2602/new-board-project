@@ -53,13 +53,11 @@ public class AuthService {
         // 해시 예시: "password123" → "$2a$10$xyz..." (복원 불가)
         String encodedPassword = passwordEncoder.encode(command.password());
 
-        // 3. 새 User 엔티티 생성
-        // - generateId(): 1, 2, 3 ... 자동 증가
+        // 3. 새 User 엔티티 생성 (id=null → save() 후 DB가 AUTO_INCREMENT로 발급)
         // - userId: 로그인 ID (예: "hong123")
         // - username: 표시 이름 (예: "홍길동")
         // - encodedPassword: 해시된 비밀번호
-        Long id = userRepository.generateId();
-        User user = User.create(id, command.userId(), command.username(), encodedPassword);
+        User user = User.createNew(command.userId(), command.username(), encodedPassword);
 
         // 4. 저장소에 사용자 저장
         userRepository.save(user);

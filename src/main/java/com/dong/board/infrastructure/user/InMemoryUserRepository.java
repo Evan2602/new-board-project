@@ -9,12 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 인메모리 사용자 저장소 구현체
- * - 실제 DB 없이 메모리(Map)에 사용자를 저장합니다
- * - ConcurrentHashMap: 여러 요청이 동시에 와도 안전하게 처리 (스레드 안전)
- * - AtomicLong: 여러 요청이 동시에 ID를 요청해도 번호가 겹치지 않음 (원자적 증가)
+ * 인메모리 사용자 저장소 구현체 (비활성화)
+ * JPA 연동 후 JpaUserRepository로 대체됨
+ * 빈 충돌 방지를 위해 @Repository 어노테이션 제거
  */
-@Repository
 public class InMemoryUserRepository implements UserRepository {
 
     // 저장소: key = 로그인 ID(userId), value = 사용자 객체
@@ -41,11 +39,5 @@ public class InMemoryUserRepository implements UserRepository {
     public boolean existsByUserId(String userId) {
         // Map의 key에 해당 로그인 ID가 있는지 확인
         return store.containsKey(userId);
-    }
-
-    @Override
-    public Long generateId() {
-        // 현재 카운터 값을 1 올리고 그 값을 반환 (원자적 연산: 동시 요청 시에도 안전)
-        return idSequence.incrementAndGet();
     }
 }

@@ -30,7 +30,4 @@ public interface UserRepository {
      * @return 이미 존재하면 true, 사용 가능하면 false
      */
     boolean existsByUserId(String userId);
-
-    // 자동 증가하는 고유 ID 생성 (1, 2, 3 ...)
-    Long generateId();
 }

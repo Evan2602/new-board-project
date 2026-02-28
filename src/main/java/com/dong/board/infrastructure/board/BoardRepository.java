@@ -20,6 +20,4 @@ public interface BoardRepository {
     void deleteById(Long id);
 
     boolean existsById(Long id);
-
-    Long generateId();
 }

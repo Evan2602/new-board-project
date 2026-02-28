@@ -42,7 +42,6 @@ class AuthServiceTest {
         SignUpCommand command = new SignUpCommand("hong123", "홍길동", "password123");
         // "hong123"이라는 ID는 아직 사용 중이지 않음
         given(userRepository.existsByUserId("hong123")).willReturn(false);
-        given(userRepository.generateId()).willReturn(1L);
         given(passwordEncoder.encode("password123")).willReturn("encodedPassword");
         // 저장 시 그대로 반환 (인메모리 저장소 동작 모방)
         given(userRepository.save(any(User.class))).willAnswer(inv -> inv.getArgument(0));
