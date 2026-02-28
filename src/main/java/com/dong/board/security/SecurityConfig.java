@@ -50,8 +50,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         // GET /api/boards/** (게시글 조회): 누구나 접근 가능 (토큰 불필요)
                         .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
-                        // /admin/** (관리자 API): ROLE_ADMIN 권한 필수
-                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                        // /api/admin/** (관리자 API): ROLE_ADMIN 권한 필수
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         // 그 외 모든 요청 (POST/PUT/DELETE /api/boards 등): 유효한 JWT 필요
                         .anyRequest().authenticated()
                 )

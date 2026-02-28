@@ -4,6 +4,7 @@ import com.dong.board.dto.CreateBoardRequest;
 import com.dong.board.dto.UpdateBoardRequest;
 import com.dong.board.exception.BoardNotFoundException;
 import com.dong.board.infrastructure.log.RequestLogRepository;
+import com.dong.board.infrastructure.user.TokenBlacklistRepository;
 import com.dong.board.interfaces.board.api.BoardController;
 import com.dong.board.security.JwtProvider;
 import com.dong.board.security.SecurityConfig;
@@ -52,6 +53,10 @@ class BoardControllerTest {
     // LoggingFilter가 RequestLogRepository에 의존하므로 모킹 필요
     @MockitoBean
     private RequestLogRepository requestLogRepository;
+
+    // JwtAuthenticationFilter → TokenBlacklistRepository 의존성 충족 필수
+    @MockitoBean
+    private TokenBlacklistRepository tokenBlacklistRepository;
 
     // 테스트용 샘플 BoardResult 생성 (authorId에 로그인 ID 사용)
     private BoardResult createSampleResult(Long id) {

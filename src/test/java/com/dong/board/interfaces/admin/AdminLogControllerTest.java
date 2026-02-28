@@ -7,6 +7,7 @@ import com.dong.board.domain.log.RequestLogService;
 import com.dong.board.dto.AdminMemoRequest;
 import com.dong.board.exception.RequestLogNotFoundException;
 import com.dong.board.infrastructure.log.RequestLogRepository;
+import com.dong.board.infrastructure.user.TokenBlacklistRepository;
 import com.dong.board.interfaces.admin.api.AdminLogController;
 import com.dong.board.security.JwtProvider;
 import com.dong.board.security.SecurityConfig;
@@ -51,16 +52,20 @@ class AdminLogControllerTest {
     @MockitoBean
     private RequestLogRepository requestLogRepository;
 
+    // JwtAuthenticationFilter → TokenBlacklistRepository 의존성 충족 필수
+    @MockitoBean
+    private TokenBlacklistRepository tokenBlacklistRepository;
+
     // ---- 로그 목록 조회 ----
 
     @Test
-    @DisplayName("GET /admin/logs → 200 (ROLE_ADMIN)")
+    @DisplayName("GET /api/admin/logs → 200 (ROLE_ADMIN)")
     void getLogs_returns200_whenAdmin() throws Exception {
         // given: 빈 페이지 결과 반환
         PageResult<RequestLogResult> mockResult = new PageResult<>(List.of(), 0, 20, 0L, 0);
         given(requestLogService.searchLogs(any(RequestLogSearchCommand.class))).willReturn(mockResult);
 
-        mockMvc.perform(get("/admin/logs")
+        mockMvc.perform(get("/api/admin/logs")
                         .with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
@@ -69,28 +74,28 @@ class AdminLogControllerTest {
     }
 
     @Test
-    @DisplayName("GET /admin/logs → 403 (ROLE_USER)")
+    @DisplayName("GET /api/admin/logs → 403 (ROLE_USER)")
     void getLogs_returns403_whenNotAdmin() throws Exception {
-        mockMvc.perform(get("/admin/logs")
+        mockMvc.perform(get("/api/admin/logs")
                         .with(user("hong123").roles("USER")))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("GET /admin/logs → 401 (미인증)")
+    @DisplayName("GET /api/admin/logs → 401 (미인증)")
     void getLogs_returns401_whenUnauthenticated() throws Exception {
-        mockMvc.perform(get("/admin/logs"))
+        mockMvc.perform(get("/api/admin/logs"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("GET /admin/logs?statusGroup=4xx → 200 (필터 적용)")
+    @DisplayName("GET /api/admin/logs?statusGroup=4xx → 200 (필터 적용)")
     void getLogs_withStatusGroupFilter_returns200() throws Exception {
         RequestLogResult logResult = createMockLogResult(1L, 404, "BOARD_NOT_FOUND");
         PageResult<RequestLogResult> mockResult = new PageResult<>(List.of(logResult), 0, 20, 1L, 1);
         given(requestLogService.searchLogs(any(RequestLogSearchCommand.class))).willReturn(mockResult);
 
-        mockMvc.perform(get("/admin/logs")
+        mockMvc.perform(get("/api/admin/logs")
                         .with(user("admin").roles("ADMIN"))
                         .param("statusGroup", "4xx"))
                 .andExpect(status().isOk())
@@ -101,12 +106,12 @@ class AdminLogControllerTest {
     // ---- 로그 상세 조회 ----
 
     @Test
-    @DisplayName("GET /admin/logs/{id} → 200 (ROLE_ADMIN)")
+    @DisplayName("GET /api/admin/logs/{id} → 200 (ROLE_ADMIN)")
     void getLog_returns200() throws Exception {
         RequestLogResult logResult = createMockLogResult(1L, 200, null);
         given(requestLogService.getLog(1L)).willReturn(logResult);
 
-        mockMvc.perform(get("/admin/logs/1")
+        mockMvc.perform(get("/api/admin/logs/1")
                         .with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -114,12 +119,12 @@ class AdminLogControllerTest {
     }
 
     @Test
-    @DisplayName("GET /admin/logs/{id} → 404 (존재하지 않는 로그)")
+    @DisplayName("GET /api/admin/logs/{id} → 404 (존재하지 않는 로그)")
     void getLog_returns404_whenNotFound() throws Exception {
         given(requestLogService.getLog(999L))
                 .willThrow(new RequestLogNotFoundException(999L));
 
-        mockMvc.perform(get("/admin/logs/999")
+        mockMvc.perform(get("/api/admin/logs/999")
                         .with(user("admin").roles("ADMIN")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("LOG_NOT_FOUND"));
@@ -128,13 +133,13 @@ class AdminLogControllerTest {
     // ---- 관리자 메모 수정 ----
 
     @Test
-    @DisplayName("PATCH /admin/logs/{id}/memo → 200 (메모 수정 성공)")
+    @DisplayName("PATCH /api/admin/logs/{id}/memo → 200 (메모 수정 성공)")
     void updateMemo_returns200() throws Exception {
         AdminMemoRequest request = new AdminMemoRequest("장애 원인 조사 완료");
         RequestLogResult updated = createMockLogResultWithMemo(1L, "장애 원인 조사 완료");
         given(requestLogService.updateAdminMemo(eq(1L), anyString())).willReturn(updated);
 
-        mockMvc.perform(patch("/admin/logs/1/memo")
+        mockMvc.perform(patch("/api/admin/logs/1/memo")
                         .with(user("admin").roles("ADMIN"))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -144,9 +149,9 @@ class AdminLogControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /admin/logs/{id}/memo → 400 (memo 필드 null)")
+    @DisplayName("PATCH /api/admin/logs/{id}/memo → 400 (memo 필드 null)")
     void updateMemo_returns400_whenMemoIsNull() throws Exception {
-        mockMvc.perform(patch("/admin/logs/1/memo")
+        mockMvc.perform(patch("/api/admin/logs/1/memo")
                         .with(user("admin").roles("ADMIN"))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -155,11 +160,11 @@ class AdminLogControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /admin/logs/{id}/memo → 403 (ROLE_USER)")
+    @DisplayName("PATCH /api/admin/logs/{id}/memo → 403 (ROLE_USER)")
     void updateMemo_returns403_whenNotAdmin() throws Exception {
         AdminMemoRequest request = new AdminMemoRequest("메모");
 
-        mockMvc.perform(patch("/admin/logs/1/memo")
+        mockMvc.perform(patch("/api/admin/logs/1/memo")
                         .with(user("hong123").roles("USER"))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)

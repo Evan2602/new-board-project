@@ -21,7 +21,7 @@ import java.time.LocalDate;
  * - 모든 메서드는 HTTP 변환만 담당 (비즈니스 로직은 RequestLogService에 위임)
  */
 @RestController
-@RequestMapping("/admin/logs")
+@RequestMapping("/api/admin/logs")
 @RequiredArgsConstructor
 public class AdminLogController {
 

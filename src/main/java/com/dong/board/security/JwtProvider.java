@@ -114,4 +114,24 @@ public class JwtProvider {
             return false;
         }
     }
+
+    /**
+     * JWT 토큰에서 발급 시각(iat) 추출
+     * 강제 로그아웃 처리된 토큰 검증 시 사용
+     * - tokenBlacklist.invalidatedAt 보다 이전에 발급된 토큰은 무효 처리
+     *
+     * @param token JWT 토큰 문자열
+     * @return 토큰 발급 시각 (LocalDateTime)
+     */
+    public java.time.LocalDateTime extractIssuedAt(String token) {
+        java.util.Date issuedAt = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getIssuedAt();
+        return issuedAt.toInstant()
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDateTime();
+    }
 }
