@@ -41,6 +41,15 @@ dependencies {
 	// 테스트용 H2 인메모리 DB (MySQL 호환 모드 지원)
 	testImplementation 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// Micrometer Tracing (Brave 브릿지)
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave:1.6.3'
+	// Zipkin Reporter
+	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+	implementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
+	// Spring Boot Actuator (tracing 엔드포인트 포함)
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	// AOP (Controller/Service/Repository 흐름 로깅용) - Spring Boot 4.x는 직접 aspectjweaver 추가
+	implementation 'org.aspectj:aspectjweaver'
 }
 
 tasks.named('test') {

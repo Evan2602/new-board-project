@@ -8,17 +8,29 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: update          # 개발 중: 스키마 자동 생성/변경 (운영 시 validate로 변경)
-    show-sql: true              # SQL 로그 출력
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
-        format_sql: true        # SQL 보기 좋게 포맷
+        format_sql: true
+
+  # Zipkin 트레이싱 설정
+  tracing:
+    sampling:
+      probability: 1.0   # 100% 샘플링 (운영 시 0.1 권장)
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
 
 jwt:
   secret: "board-jwt-secret-key-must-be-32-chars-minimum!!"
   expiration-ms: 86400000
 
-# 기본 관리자 계정 설정 (운영 환경에서는 환경 변수로 오버라이드 권장)
 admin:
   default-id: "admin"
   default-password: "Admin1234!"
